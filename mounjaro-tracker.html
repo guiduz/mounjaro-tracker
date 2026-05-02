@@ -1,0 +1,1759 @@
+<!DOCTYPE html>
+<html lang="it" data-theme="light">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <title>MounjaroTracker</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,300..700;1,9..40,300..700&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <style>
+    /* === ART DIRECTION ===
+       Concept: salute e cura di sé → calmo, clinico-moderno, fiducia
+       Palette: superfici calde neutre, accento teal-verde salute
+       Typography: DM Sans (body) — moderno, leggibile, medico
+       Density: spacious su mobile, ogni card chiara
+    */
+
+    :root, [data-theme="light"] {
+      --text-xs: clamp(0.75rem, 0.7rem + 0.25vw, 0.875rem);
+      --text-sm: clamp(0.875rem, 0.8rem + 0.35vw, 1rem);
+      --text-base: clamp(1rem, 0.95rem + 0.25vw, 1.125rem);
+      --text-lg: clamp(1.125rem, 1rem + 0.75vw, 1.5rem);
+      --text-xl: clamp(1.5rem, 1.2rem + 1.25vw, 2.25rem);
+
+      --space-1: 0.25rem;
+      --space-2: 0.5rem;
+      --space-3: 0.75rem;
+      --space-4: 1rem;
+      --space-5: 1.25rem;
+      --space-6: 1.5rem;
+      --space-8: 2rem;
+      --space-10: 2.5rem;
+      --space-12: 3rem;
+
+      --color-bg: #f5f7f5;
+      --color-surface: #ffffff;
+      --color-surface-2: #f0f4f1;
+      --color-surface-offset: #e8ede9;
+      --color-divider: #d6ddd7;
+      --color-border: #c8d1c9;
+
+      --color-text: #1a2b1c;
+      --color-text-muted: #5a7060;
+      --color-text-faint: #94a896;
+      --color-text-inverse: #f5f7f5;
+
+      --color-primary: #1a7a4a;
+      --color-primary-hover: #155f3a;
+      --color-primary-active: #0f4429;
+      --color-primary-highlight: #c8e8d5;
+      --color-primary-soft: #e8f5ee;
+
+      --color-accent: #2e9b6a;
+      --color-injection: #2563b0;
+      --color-injection-soft: #dbeafe;
+      --color-injection-hover: #1d4ed8;
+
+      --color-success: #2e7d32;
+      --color-success-soft: #e8f5e9;
+      --color-warning: #e65100;
+      --color-warning-soft: #fff3e0;
+      --color-error: #c62828;
+      --color-error-soft: #ffebee;
+      --color-gold: #f59e0b;
+
+      --radius-sm: 0.375rem;
+      --radius-md: 0.5rem;
+      --radius-lg: 0.75rem;
+      --radius-xl: 1rem;
+      --radius-2xl: 1.5rem;
+      --radius-full: 9999px;
+
+      --shadow-sm: 0 1px 3px oklch(0.2 0.05 140 / 0.08);
+      --shadow-md: 0 4px 12px oklch(0.2 0.05 140 / 0.1);
+      --shadow-lg: 0 8px 24px oklch(0.2 0.05 140 / 0.14);
+
+      --transition: 180ms cubic-bezier(0.16, 1, 0.3, 1);
+      --font-body: 'DM Sans', -apple-system, sans-serif;
+      --font-mono: 'DM Mono', monospace;
+
+      --nav-height: 64px;
+      --header-height: 56px;
+    }
+
+    [data-theme="dark"] {
+      --color-bg: #0f1a11;
+      --color-surface: #162018;
+      --color-surface-2: #1c2a1e;
+      --color-surface-offset: #1f2e21;
+      --color-divider: #2a3c2c;
+      --color-border: #344836;
+      --color-text: #c8daca;
+      --color-text-muted: #7a9c7e;
+      --color-text-faint: #4a6a4e;
+      --color-text-inverse: #0f1a11;
+      --color-primary: #4caf78;
+      --color-primary-hover: #66c48f;
+      --color-primary-active: #80d4a6;
+      --color-primary-highlight: #1e3d28;
+      --color-primary-soft: #162a1e;
+      --color-accent: #5ec090;
+      --color-injection: #60a5fa;
+      --color-injection-soft: #1e3a5f;
+      --color-injection-hover: #93c5fd;
+      --color-success: #66bb6a;
+      --color-success-soft: #1b3520;
+      --color-warning: #ffa726;
+      --color-warning-soft: #3d2700;
+      --color-error: #ef5350;
+      --color-error-soft: #3d1010;
+      --color-gold: #fbbf24;
+      --shadow-sm: 0 1px 3px oklch(0 0 0 / 0.25);
+      --shadow-md: 0 4px 12px oklch(0 0 0 / 0.35);
+      --shadow-lg: 0 8px 24px oklch(0 0 0 / 0.45);
+    }
+
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    html {
+      -webkit-text-size-adjust: none;
+      text-size-adjust: none;
+      -webkit-font-smoothing: antialiased;
+      scroll-behavior: smooth;
+      height: 100%;
+    }
+
+    body {
+      font-family: var(--font-body);
+      font-size: var(--text-base);
+      color: var(--color-text);
+      background: var(--color-bg);
+      min-height: 100dvh;
+      min-height: -webkit-fill-available;
+      overflow-x: hidden;
+      padding-bottom: var(--nav-height);
+    }
+
+    img { display: block; max-width: 100%; }
+    input, button, select, textarea { font: inherit; color: inherit; }
+    button { cursor: pointer; background: none; border: none; }
+    a, button { transition: color var(--transition), background var(--transition), box-shadow var(--transition); }
+
+    :focus-visible {
+      outline: 2px solid var(--color-primary);
+      outline-offset: 2px;
+      border-radius: var(--radius-sm);
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      *, *::before, *::after {
+        animation-duration: 0.01ms !important;
+        transition-duration: 0.01ms !important;
+      }
+    }
+
+    /* ===== HEADER ===== */
+    .app-header {
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      background: var(--color-surface);
+      border-bottom: 1px solid var(--color-divider);
+      height: var(--header-height);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 var(--space-4);
+      box-shadow: var(--shadow-sm);
+    }
+
+    .header-logo {
+      display: flex;
+      align-items: center;
+      gap: var(--space-2);
+    }
+
+    .logo-text {
+      font-size: var(--text-lg);
+      font-weight: 700;
+      color: var(--color-primary);
+      letter-spacing: -0.02em;
+    }
+
+    .header-actions {
+      display: flex;
+      align-items: center;
+      gap: var(--space-2);
+    }
+
+    .icon-btn {
+      width: 40px;
+      height: 40px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: var(--radius-md);
+      color: var(--color-text-muted);
+    }
+
+    .icon-btn:hover { background: var(--color-surface-2); color: var(--color-text); }
+    .icon-btn:active { background: var(--color-surface-offset); }
+
+    /* ===== BOTTOM NAV ===== */
+    .bottom-nav {
+      position: fixed;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      z-index: 100;
+      background: var(--color-surface);
+      border-top: 1px solid var(--color-divider);
+      height: var(--nav-height);
+      display: flex;
+      align-items: stretch;
+      padding-bottom: env(safe-area-inset-bottom);
+      box-shadow: 0 -2px 12px oklch(0.2 0.05 140 / 0.08);
+    }
+
+    .nav-item {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 3px;
+      color: var(--color-text-faint);
+      font-size: var(--text-xs);
+      font-weight: 500;
+      text-decoration: none;
+      cursor: pointer;
+      transition: color var(--transition);
+      padding: var(--space-2) 0;
+      border: none;
+      background: none;
+    }
+
+    .nav-item.active {
+      color: var(--color-primary);
+    }
+
+    .nav-item:active { color: var(--color-primary-hover); }
+
+    .nav-icon {
+      width: 24px;
+      height: 24px;
+    }
+
+    /* ===== VIEWS ===== */
+    .view {
+      display: none;
+      padding: var(--space-4);
+      max-width: 480px;
+      margin: 0 auto;
+    }
+
+    .view.active { display: block; }
+
+    /* ===== SECTION TITLE ===== */
+    .section-title {
+      font-size: var(--text-lg);
+      font-weight: 700;
+      color: var(--color-text);
+      margin-bottom: var(--space-4);
+      letter-spacing: -0.01em;
+    }
+
+    .section-subtitle {
+      font-size: var(--text-sm);
+      color: var(--color-text-muted);
+      margin-bottom: var(--space-4);
+      margin-top: calc(-1 * var(--space-2));
+    }
+
+    /* ===== KPI CARDS ===== */
+    .kpi-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: var(--space-3);
+      margin-bottom: var(--space-4);
+    }
+
+    .kpi-card {
+      background: var(--color-surface);
+      border-radius: var(--radius-xl);
+      padding: var(--space-4);
+      box-shadow: var(--shadow-sm);
+      border: 1px solid oklch(from var(--color-border) l c h / 0.6);
+    }
+
+    .kpi-card.accent {
+      background: var(--color-primary-soft);
+      border-color: var(--color-primary-highlight);
+    }
+
+    .kpi-card.injection-card {
+      background: var(--color-injection-soft);
+      border-color: oklch(from var(--color-injection) l c h / 0.2);
+    }
+
+    .kpi-label {
+      font-size: var(--text-xs);
+      color: var(--color-text-muted);
+      font-weight: 500;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      margin-bottom: var(--space-1);
+    }
+
+    .kpi-value {
+      font-size: var(--text-xl);
+      font-weight: 700;
+      color: var(--color-text);
+      font-variant-numeric: tabular-nums lining-nums;
+      font-family: var(--font-mono);
+      line-height: 1.1;
+    }
+
+    .kpi-value.primary { color: var(--color-primary); }
+    .kpi-value.injection { color: var(--color-injection); }
+
+    .kpi-delta {
+      font-size: var(--text-xs);
+      font-weight: 600;
+      margin-top: var(--space-1);
+      display: flex;
+      align-items: center;
+      gap: 2px;
+    }
+
+    .kpi-delta.down { color: var(--color-success); }
+    .kpi-delta.up { color: var(--color-error); }
+    .kpi-delta.neutral { color: var(--color-text-faint); }
+
+    /* ===== CARD ===== */
+    .card {
+      background: var(--color-surface);
+      border-radius: var(--radius-xl);
+      padding: var(--space-4);
+      box-shadow: var(--shadow-sm);
+      border: 1px solid oklch(from var(--color-border) l c h / 0.5);
+      margin-bottom: var(--space-4);
+    }
+
+    .card-title {
+      font-size: var(--text-base);
+      font-weight: 600;
+      color: var(--color-text);
+      margin-bottom: var(--space-3);
+      display: flex;
+      align-items: center;
+      gap: var(--space-2);
+    }
+
+    .card-title-icon {
+      width: 20px;
+      height: 20px;
+      color: var(--color-primary);
+    }
+
+    /* ===== FORM ===== */
+    .form-group {
+      margin-bottom: var(--space-4);
+    }
+
+    .form-label {
+      display: block;
+      font-size: var(--text-sm);
+      font-weight: 600;
+      color: var(--color-text-muted);
+      margin-bottom: var(--space-2);
+    }
+
+    .form-input {
+      width: 100%;
+      padding: var(--space-3) var(--space-4);
+      background: var(--color-surface-2);
+      border: 1.5px solid var(--color-border);
+      border-radius: var(--radius-lg);
+      font-size: var(--text-base);
+      color: var(--color-text);
+      transition: border-color var(--transition), box-shadow var(--transition);
+      -webkit-appearance: none;
+    }
+
+    .form-input:focus {
+      outline: none;
+      border-color: var(--color-primary);
+      box-shadow: 0 0 0 3px oklch(from var(--color-primary) l c h / 0.12);
+    }
+
+    .form-input::placeholder { color: var(--color-text-faint); }
+
+    .form-row {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: var(--space-3);
+    }
+
+    .form-hint {
+      font-size: var(--text-xs);
+      color: var(--color-text-faint);
+      margin-top: var(--space-1);
+    }
+
+    /* ===== BUTTONS ===== */
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: var(--space-2);
+      padding: var(--space-3) var(--space-6);
+      border-radius: var(--radius-lg);
+      font-size: var(--text-sm);
+      font-weight: 600;
+      cursor: pointer;
+      border: none;
+      transition: background var(--transition), box-shadow var(--transition), transform var(--transition);
+      min-height: 44px;
+      white-space: nowrap;
+    }
+
+    .btn:active { transform: scale(0.98); }
+
+    .btn-primary {
+      background: var(--color-primary);
+      color: var(--color-text-inverse);
+    }
+
+    .btn-primary:hover { background: var(--color-primary-hover); }
+
+    .btn-injection {
+      background: var(--color-injection);
+      color: white;
+    }
+
+    .btn-injection:hover { background: var(--color-injection-hover); }
+
+    .btn-ghost {
+      background: transparent;
+      color: var(--color-text-muted);
+      border: 1.5px solid var(--color-border);
+    }
+
+    .btn-ghost:hover { background: var(--color-surface-2); }
+
+    .btn-danger {
+      background: var(--color-error-soft);
+      color: var(--color-error);
+      border: none;
+    }
+
+    .btn-danger:hover { background: var(--color-error); color: white; }
+
+    .btn-full { width: 100%; }
+
+    /* ===== CHART CONTAINER ===== */
+    .chart-wrap {
+      position: relative;
+      width: 100%;
+      height: 200px;
+    }
+
+    /* ===== HISTORY ITEMS ===== */
+    .history-list {
+      display: flex;
+      flex-direction: column;
+      gap: var(--space-2);
+    }
+
+    .history-item {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: var(--space-3) var(--space-4);
+      background: var(--color-surface-2);
+      border-radius: var(--radius-lg);
+      border: 1px solid oklch(from var(--color-border) l c h / 0.4);
+    }
+
+    .history-item:active { background: var(--color-surface-offset); }
+
+    .history-date {
+      font-size: var(--text-xs);
+      color: var(--color-text-faint);
+      font-weight: 500;
+    }
+
+    .history-values {
+      display: flex;
+      gap: var(--space-4);
+    }
+
+    .history-val {
+      font-size: var(--text-sm);
+      font-weight: 600;
+      font-variant-numeric: tabular-nums;
+    }
+
+    .history-val.weight { color: var(--color-primary); }
+    .history-val.chest { color: var(--color-accent); }
+
+    .history-delete {
+      width: 32px;
+      height: 32px;
+      border-radius: var(--radius-md);
+      color: var(--color-text-faint);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .history-delete:hover { background: var(--color-error-soft); color: var(--color-error); }
+
+    /* ===== INJECTION ITEMS ===== */
+    .injection-item {
+      display: flex;
+      align-items: center;
+      gap: var(--space-3);
+      padding: var(--space-3) var(--space-4);
+      background: var(--color-injection-soft);
+      border-radius: var(--radius-lg);
+      border: 1px solid oklch(from var(--color-injection) l c h / 0.15);
+      margin-bottom: var(--space-2);
+    }
+
+    .injection-icon {
+      width: 36px;
+      height: 36px;
+      border-radius: var(--radius-full);
+      background: oklch(from var(--color-injection) l c h / 0.15);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+      color: var(--color-injection);
+    }
+
+    .injection-info { flex: 1; }
+
+    .injection-date {
+      font-size: var(--text-sm);
+      font-weight: 600;
+      color: var(--color-text);
+    }
+
+    .injection-dose {
+      font-size: var(--text-xs);
+      color: var(--color-text-muted);
+      margin-top: 2px;
+    }
+
+    .injection-badge {
+      font-size: var(--text-xs);
+      font-weight: 600;
+      padding: 2px var(--space-2);
+      border-radius: var(--radius-full);
+      background: oklch(from var(--color-injection) l c h / 0.15);
+      color: var(--color-injection);
+    }
+
+    /* ===== STATS TABS ===== */
+    .stats-tabs {
+      display: flex;
+      background: var(--color-surface-2);
+      border-radius: var(--radius-lg);
+      padding: 3px;
+      margin-bottom: var(--space-4);
+      gap: 2px;
+    }
+
+    .stats-tab {
+      flex: 1;
+      padding: var(--space-2) var(--space-3);
+      border-radius: calc(var(--radius-lg) - 3px);
+      font-size: var(--text-sm);
+      font-weight: 600;
+      color: var(--color-text-muted);
+      text-align: center;
+      cursor: pointer;
+      border: none;
+      background: none;
+      transition: background var(--transition), color var(--transition);
+      min-height: 40px;
+    }
+
+    .stats-tab.active {
+      background: var(--color-surface);
+      color: var(--color-primary);
+      box-shadow: var(--shadow-sm);
+    }
+
+    /* ===== STAT PERIOD SECTION ===== */
+    .stat-section {
+      display: none;
+    }
+
+    .stat-section.active { display: block; }
+
+    .stat-row {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: var(--space-3);
+      margin-bottom: var(--space-3);
+    }
+
+    .stat-box {
+      background: var(--color-surface);
+      border-radius: var(--radius-lg);
+      padding: var(--space-4);
+      box-shadow: var(--shadow-sm);
+      border: 1px solid oklch(from var(--color-border) l c h / 0.5);
+      text-align: center;
+    }
+
+    .stat-box-label {
+      font-size: var(--text-xs);
+      color: var(--color-text-muted);
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      font-weight: 600;
+      margin-bottom: var(--space-1);
+    }
+
+    .stat-box-value {
+      font-size: var(--text-lg);
+      font-weight: 700;
+      font-variant-numeric: tabular-nums;
+      font-family: var(--font-mono);
+      color: var(--color-primary);
+    }
+
+    .stat-box-value.chest { color: var(--color-accent); }
+    .stat-box-value.neutral { color: var(--color-text); }
+
+    .stat-box-sub {
+      font-size: var(--text-xs);
+      color: var(--color-text-faint);
+      margin-top: 2px;
+    }
+
+    /* ===== EMPTY STATE ===== */
+    .empty-state {
+      text-align: center;
+      padding: var(--space-12) var(--space-8);
+      color: var(--color-text-muted);
+    }
+
+    .empty-state-icon {
+      width: 52px;
+      height: 52px;
+      margin: 0 auto var(--space-4);
+      color: var(--color-text-faint);
+    }
+
+    .empty-state h3 {
+      font-size: var(--text-base);
+      font-weight: 600;
+      color: var(--color-text);
+      margin-bottom: var(--space-2);
+    }
+
+    .empty-state p {
+      font-size: var(--text-sm);
+      max-width: 28ch;
+      margin: 0 auto var(--space-6);
+    }
+
+    /* ===== MODAL ===== */
+    .modal-overlay {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: oklch(0 0 0 / 0.5);
+      z-index: 200;
+      align-items: flex-end;
+    }
+
+    .modal-overlay.open { display: flex; }
+
+    .modal {
+      background: var(--color-surface);
+      border-radius: var(--radius-2xl) var(--radius-2xl) 0 0;
+      padding: var(--space-6) var(--space-4) calc(var(--space-6) + env(safe-area-inset-bottom));
+      width: 100%;
+      max-width: 480px;
+      margin: 0 auto;
+      animation: slideUp 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+
+    @keyframes slideUp {
+      from { transform: translateY(100%); opacity: 0; }
+      to { transform: translateY(0); opacity: 1; }
+    }
+
+    .modal-handle {
+      width: 36px;
+      height: 4px;
+      background: var(--color-border);
+      border-radius: var(--radius-full);
+      margin: 0 auto var(--space-5);
+    }
+
+    .modal-title {
+      font-size: var(--text-lg);
+      font-weight: 700;
+      color: var(--color-text);
+      margin-bottom: var(--space-5);
+      text-align: center;
+    }
+
+    /* ===== TOAST ===== */
+    .toast-container {
+      position: fixed;
+      top: calc(var(--header-height) + var(--space-4));
+      left: 50%;
+      transform: translateX(-50%);
+      z-index: 300;
+      display: flex;
+      flex-direction: column;
+      gap: var(--space-2);
+      pointer-events: none;
+    }
+
+    .toast {
+      background: var(--color-text);
+      color: var(--color-bg);
+      padding: var(--space-3) var(--space-5);
+      border-radius: var(--radius-full);
+      font-size: var(--text-sm);
+      font-weight: 600;
+      box-shadow: var(--shadow-lg);
+      white-space: nowrap;
+      animation: toastIn 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+
+    @keyframes toastIn {
+      from { opacity: 0; transform: translateY(-8px) scale(0.95); }
+      to { opacity: 1; transform: translateY(0) scale(1); }
+    }
+
+    /* ===== PROGRESS BAR ===== */
+    .progress-bar-wrap {
+      background: var(--color-surface-2);
+      border-radius: var(--radius-full);
+      height: 8px;
+      margin-top: var(--space-2);
+      overflow: hidden;
+    }
+
+    .progress-bar {
+      height: 100%;
+      border-radius: var(--radius-full);
+      background: var(--color-primary);
+      transition: width 0.5s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+
+    .progress-bar.chest { background: var(--color-accent); }
+
+    /* ===== DIVIDER ===== */
+    .divider {
+      height: 1px;
+      background: var(--color-divider);
+      margin: var(--space-4) 0;
+    }
+
+    /* ===== TIMELINE DOT ===== */
+    .next-injection-card {
+      background: linear-gradient(135deg, var(--color-injection-soft), var(--color-primary-soft));
+      border: 1px solid oklch(from var(--color-injection) l c h / 0.2);
+      border-radius: var(--radius-xl);
+      padding: var(--space-4);
+      margin-bottom: var(--space-4);
+      display: flex;
+      align-items: center;
+      gap: var(--space-3);
+    }
+
+    .next-inj-icon {
+      width: 44px;
+      height: 44px;
+      border-radius: var(--radius-full);
+      background: var(--color-injection-soft);
+      border: 2px solid oklch(from var(--color-injection) l c h / 0.3);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+      color: var(--color-injection);
+    }
+
+    .next-inj-text { flex: 1; }
+
+    .next-inj-label {
+      font-size: var(--text-xs);
+      color: var(--color-text-muted);
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+
+    .next-inj-value {
+      font-size: var(--text-base);
+      font-weight: 700;
+      color: var(--color-injection);
+    }
+
+    .next-inj-days {
+      font-size: var(--text-xs);
+      color: var(--color-text-muted);
+    }
+
+    /* Select styled */
+    select.form-input {
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%235a7060' stroke-width='2'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E");
+      background-repeat: no-repeat;
+      background-position: right var(--space-3) center;
+      padding-right: var(--space-10);
+      appearance: none;
+      -webkit-appearance: none;
+    }
+
+    .tag-weight {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      font-size: var(--text-xs);
+      padding: 2px var(--space-2);
+      border-radius: var(--radius-full);
+      font-weight: 600;
+      background: var(--color-primary-soft);
+      color: var(--color-primary);
+    }
+
+    .tag-chest {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      font-size: var(--text-xs);
+      padding: 2px var(--space-2);
+      border-radius: var(--radius-full);
+      font-weight: 600;
+      background: oklch(from var(--color-accent) l c h / 0.12);
+      color: var(--color-accent);
+    }
+
+    /* Dark scrollbar */
+    ::-webkit-scrollbar { width: 4px; }
+    ::-webkit-scrollbar-track { background: transparent; }
+    ::-webkit-scrollbar-thumb { background: var(--color-border); border-radius: 2px; }
+
+    /* No data placeholder for charts */
+    .no-data-chart {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      height: 200px;
+      color: var(--color-text-faint);
+      font-size: var(--text-sm);
+      border: 1.5px dashed var(--color-border);
+      border-radius: var(--radius-lg);
+    }
+  </style>
+</head>
+<body>
+
+<!-- HEADER -->
+<header class="app-header">
+  <div class="header-logo">
+    <svg width="28" height="28" viewBox="0 0 28 28" fill="none" aria-label="MounjaroTracker logo">
+      <rect width="28" height="28" rx="8" fill="var(--color-primary)"/>
+      <path d="M6 20 L10 10 L14 16 L18 8 L22 14" stroke="white" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+      <circle cx="22" cy="8" r="2.2" fill="var(--color-gold)"/>
+    </svg>
+    <span class="logo-text">MounjaroTracker</span>
+  </div>
+  <div class="header-actions">
+    <button class="icon-btn" data-theme-toggle aria-label="Cambia tema">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
+    </button>
+  </div>
+</header>
+
+<!-- TOAST CONTAINER -->
+<div class="toast-container" id="toastContainer"></div>
+
+<!-- MAIN VIEWS -->
+<main>
+
+  <!-- === VIEW: DASHBOARD === -->
+  <div class="view active" id="view-home">
+    <div id="nextInjectionCard"></div>
+
+    <div class="kpi-grid" id="kpiGrid">
+      <!-- filled by JS -->
+    </div>
+
+    <div class="card" id="weightChartCard">
+      <div class="card-title">
+        <svg class="card-title-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+        Andamento Peso
+      </div>
+      <div class="chart-wrap">
+        <canvas id="weightChart"></canvas>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-title">
+        <svg class="card-title-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M8 12a4 4 0 0 0 8 0"/></svg>
+        Andamento Circonferenza
+      </div>
+      <div class="chart-wrap">
+        <canvas id="chestChart"></canvas>
+      </div>
+    </div>
+  </div>
+
+  <!-- === VIEW: REGISTRA === -->
+  <div class="view" id="view-add">
+    <!-- WEIGHT / CHEST ENTRY -->
+    <div class="card">
+      <div class="card-title">
+        <svg class="card-title-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7z"/><circle cx="12" cy="9" r="2.5"/></svg>
+        Nuova misurazione
+      </div>
+      <form id="measureForm">
+        <div class="form-group">
+          <label class="form-label" for="inputDate">Data</label>
+          <input type="date" id="inputDate" class="form-input" required>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label class="form-label" for="inputWeight">Peso (kg)</label>
+            <input type="number" id="inputWeight" class="form-input" step="0.1" min="30" max="300" placeholder="es. 82.5">
+          </div>
+          <div class="form-group">
+            <label class="form-label" for="inputChest">Torace (cm)</label>
+            <input type="number" id="inputChest" class="form-input" step="0.5" min="50" max="200" placeholder="es. 105">
+          </div>
+        </div>
+        <p class="form-hint">Inserisci almeno uno dei due valori.</p>
+        <button type="submit" class="btn btn-primary btn-full">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 5v14M5 12h14"/></svg>
+          Salva misurazione
+        </button>
+      </form>
+    </div>
+
+    <!-- INJECTION ENTRY -->
+    <div class="card">
+      <div class="card-title">
+        <svg class="card-title-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="color:var(--color-injection)"><path d="M10.5 2.5L7 6M14 6l2 2M6 18l-2 2M17.5 6.5l2-2M12 12l-8 8M9.5 14.5L4 20M15 9l-6 6"/><path d="M20 4l-3.5 3.5"/></svg>
+        Registra puntura
+      </div>
+      <form id="injectionForm">
+        <div class="form-row">
+          <div class="form-group">
+            <label class="form-label" for="injDate">Data puntura</label>
+            <input type="date" id="injDate" class="form-input" required>
+          </div>
+          <div class="form-group">
+            <label class="form-label" for="injTime">Orario</label>
+            <input type="time" id="injTime" class="form-input">
+          </div>
+        </div>
+        <div class="form-group">
+          <label class="form-label" for="injDose">Dosaggio</label>
+          <select id="injDose" class="form-input">
+            <option value="2.5 mg">2.5 mg (settimane 1–4)</option>
+            <option value="5 mg">5 mg (settimane 5–8)</option>
+            <option value="7.5 mg">7.5 mg (settimane 9–12)</option>
+            <option value="10 mg">10 mg (settimane 13–16)</option>
+            <option value="12.5 mg">12.5 mg (settimane 17–20)</option>
+            <option value="15 mg">15 mg (settimane 21+)</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label class="form-label" for="injNotes">Note (opzionale)</label>
+          <input type="text" id="injNotes" class="form-input" placeholder="es. zona addome, nessun effetto">
+        </div>
+        <button type="submit" class="btn btn-injection btn-full">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 5v14M5 12h14"/></svg>
+          Salva puntura
+        </button>
+      </form>
+    </div>
+  </div>
+
+  <!-- === VIEW: STORICO === -->
+  <div class="view" id="view-history">
+    <div class="card">
+      <div class="card-title">
+        <svg class="card-title-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg>
+        Misurazioni
+      </div>
+      <div id="measureHistory"></div>
+    </div>
+
+    <div class="card">
+      <div class="card-title">
+        <svg class="card-title-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="color:var(--color-injection)"><path d="M10.5 2.5L7 6M14 6l2 2M6 18l-2 2M17.5 6.5l2-2M12 12l-8 8M9.5 14.5L4 20M15 9l-6 6"/><path d="M20 4l-3.5 3.5"/></svg>
+        Punture Mounjaro
+      </div>
+      <div id="injectionHistory"></div>
+    </div>
+  </div>
+
+  <!-- === VIEW: STATISTICHE === -->
+  <div class="view" id="view-stats">
+    <div class="stats-tabs">
+      <button class="stats-tab active" onclick="switchStatTab('settimanale', this)">Settimana</button>
+      <button class="stats-tab" onclick="switchStatTab('mensile', this)">Mese</button>
+      <button class="stats-tab" onclick="switchStatTab('totale', this)">Totale</button>
+    </div>
+
+    <div class="stat-section active" id="stat-settimanale"></div>
+    <div class="stat-section" id="stat-mensile"></div>
+    <div class="stat-section" id="stat-totale"></div>
+  </div>
+
+</main>
+
+<!-- BOTTOM NAV -->
+<nav class="bottom-nav">
+  <button class="nav-item active" onclick="switchView('home', this)">
+    <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+    Home
+  </button>
+  <button class="nav-item" onclick="switchView('add', this)">
+    <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="10"/><path d="M12 8v8M8 12h8"/></svg>
+    Aggiungi
+  </button>
+  <button class="nav-item" onclick="switchView('history', this)">
+    <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 8v4l3 3m6-3a9 9 0 1 1-18 0 9 9 0 0 1 18 0z"/></svg>
+    Storico
+  </button>
+  <button class="nav-item" onclick="switchView('stats', this)">
+    <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>
+    Statistiche
+  </button>
+</nav>
+
+<script>
+// =====================
+// STATE + PERSISTENCE
+// =====================
+function saveData() {
+  try {
+    localStorage.setItem('mjt_measurements', JSON.stringify(measurements));
+    localStorage.setItem('mjt_injections', JSON.stringify(injections));
+  } catch(e) {}
+}
+
+function loadData() {
+  try {
+    const m = localStorage.getItem('mjt_measurements');
+    const i = localStorage.getItem('mjt_injections');
+    if(m) measurements = JSON.parse(m);
+    if(i) injections = JSON.parse(i);
+  } catch(e) {}
+}
+
+let measurements = [];
+let injections = [];
+
+let weightChartInst = null;
+let chestChartInst = null;
+
+loadData();
+
+// =====================
+// THEME
+// =====================
+(function(){
+  const t = document.querySelector('[data-theme-toggle]');
+  const r = document.documentElement;
+  let d = matchMedia('(prefers-color-scheme:dark)').matches ? 'dark' : 'light';
+  r.setAttribute('data-theme', d);
+  if(t) {
+    updateThemeIcon(t, d);
+    t.addEventListener('click', () => {
+      d = d === 'dark' ? 'light' : 'dark';
+      r.setAttribute('data-theme', d);
+      updateThemeIcon(t, d);
+      if(weightChartInst) { weightChartInst.destroy(); weightChartInst = null; }
+      if(chestChartInst) { chestChartInst.destroy(); chestChartInst = null; }
+      renderHome();
+    });
+  }
+})();
+
+function updateThemeIcon(btn, theme) {
+  if(theme === 'dark') {
+    btn.innerHTML = '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="5"/><path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"/></svg>';
+  } else {
+    btn.innerHTML = '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>';
+  }
+}
+
+// =====================
+// NAVIGATION
+// =====================
+function switchView(view, btn) {
+  document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
+  document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+  document.getElementById('view-' + view).classList.add('active');
+  if(btn) btn.classList.add('active');
+  if(view === 'home') renderHome();
+  if(view === 'history') renderHistory();
+  if(view === 'stats') renderStats();
+}
+
+// =====================
+// TOAST
+// =====================
+function showToast(msg) {
+  const container = document.getElementById('toastContainer');
+  const t = document.createElement('div');
+  t.className = 'toast';
+  t.textContent = msg;
+  container.appendChild(t);
+  setTimeout(() => {
+    t.style.opacity = '0';
+    t.style.transition = 'opacity 0.3s';
+    setTimeout(() => t.remove(), 300);
+  }, 2500);
+}
+
+// =====================
+// FORMS
+// =====================
+// Set today as default
+function todayStr() {
+  return new Date().toISOString().slice(0, 10);
+}
+
+document.getElementById('inputDate').value = todayStr();
+document.getElementById('injDate').value = todayStr();
+
+document.getElementById('measureForm').addEventListener('submit', e => {
+  e.preventDefault();
+  const date = document.getElementById('inputDate').value;
+  const weight = document.getElementById('inputWeight').value;
+  const chest = document.getElementById('inputChest').value;
+  if(!weight && !chest) { showToast('⚠️ Inserisci peso o circonferenza'); return; }
+  if(!date) { showToast('⚠️ Seleziona una data'); return; }
+
+  // Remove existing entry for same date, replace
+  measurements = measurements.filter(m => m.date !== date);
+  measurements.push({
+    date,
+    weight: weight ? parseFloat(weight) : null,
+    chest: chest ? parseFloat(chest) : null
+  });
+  measurements.sort((a, b) => a.date.localeCompare(b.date));
+  saveData();
+
+  document.getElementById('inputWeight').value = '';
+  document.getElementById('inputChest').value = '';
+  document.getElementById('inputDate').value = todayStr();
+
+  showToast('✅ Misurazione salvata!');
+  if(weightChartInst) { weightChartInst.destroy(); weightChartInst = null; }
+  if(chestChartInst) { chestChartInst.destroy(); chestChartInst = null; }
+});
+
+document.getElementById('injectionForm').addEventListener('submit', e => {
+  e.preventDefault();
+  const date = document.getElementById('injDate').value;
+  const time = document.getElementById('injTime').value || '';
+  const dose = document.getElementById('injDose').value;
+  const notes = document.getElementById('injNotes').value;
+  if(!date) { showToast('⚠️ Seleziona una data'); return; }
+
+  injections.push({ date, time, dose, notes });
+  injections.sort((a, b) => a.date.localeCompare(b.date));
+  saveData();
+
+  document.getElementById('injDate').value = todayStr();
+  document.getElementById('injNotes').value = '';
+
+  showToast('💉 Puntura registrata!');
+});
+
+// =====================
+// DATE UTILS
+// =====================
+function formatDate(d) {
+  const [y, m, day] = d.split('-');
+  return `${day}/${m}/${y}`;
+}
+
+function addDays(dateStr, n) {
+  const d = new Date(dateStr);
+  d.setDate(d.getDate() + n);
+  return d.toISOString().slice(0, 10);
+}
+
+function diffDays(a, b) {
+  return Math.round((new Date(b) - new Date(a)) / 86400000);
+}
+
+function getCSS(v) {
+  return getComputedStyle(document.documentElement).getPropertyValue(v).trim();
+}
+
+// =====================
+// GOOGLE CALENDAR
+// =====================
+function addToGoogleCalendar(injIdx) {
+  const inj = injections[injIdx];
+  // Next injection = this date + 7 days
+  const nextDate = addDays(inj.date, 7);
+  const timeStr = inj.time || '09:00';
+  const [hh, mm] = timeStr.split(':').map(Number);
+
+  // Format for Google Calendar: YYYYMMDDTHHmmss
+  function gcalDate(dateStr, h, m) {
+    return dateStr.replace(/-/g, '') + 'T' + String(h).padStart(2,'0') + String(m).padStart(2,'0') + '00';
+  }
+
+  const start = gcalDate(nextDate, hh, mm);
+  const end = gcalDate(nextDate, hh, mm + 30 < 60 ? mm + 30 : 59); // 30 min event
+
+  const title = encodeURIComponent('Punt. Mou. ' + inj.dose);
+  const details = encodeURIComponent('Dosaggio: ' + inj.dose + (inj.notes ? '\nNote: ' + inj.notes : '') + '\n\nRegistrato con MounjaroTracker');
+  const location = encodeURIComponent('');
+
+  const url = `https://calendar.google.com/calendar/render?action=TEMPLATE&text=${title}&dates=${start}/${end}&details=${details}`;
+  window.open(url, '_blank', 'noopener,noreferrer');
+  showToast('📅 Apertura Google Calendar...');
+}
+
+// =====================
+// HOME VIEW
+// =====================
+function renderHome() {
+  renderKPIs();
+  renderCharts();
+  renderNextInjection();
+}
+
+function renderNextInjection() {
+  const card = document.getElementById('nextInjectionCard');
+  if(injections.length === 0) { card.innerHTML = ''; return; }
+  const last = injections[injections.length - 1];
+  const next = addDays(last.date, 7);
+  const today = todayStr();
+  const days = diffDays(today, next);
+
+  let label, dayText;
+  if(days < 0) {
+    label = 'Puntura scaduta';
+    dayText = `${Math.abs(days)} giorni fa`;
+  } else if(days === 0) {
+    label = 'Puntura oggi!';
+    dayText = '';
+  } else {
+    label = 'Prossima puntura';
+    dayText = `fra ${days} giorni`;
+  }
+
+  const lastIdx = injections.length - 1;
+  card.innerHTML = `
+    <div class="next-injection-card">
+      <div class="next-inj-icon">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10.5 2.5L7 6M14 6l2 2M6 18l-2 2M17.5 6.5l2-2M12 12l-8 8M9.5 14.5L4 20M15 9l-6 6"/><path d="M20 4l-3.5 3.5"/></svg>
+      </div>
+      <div class="next-inj-text">
+        <div class="next-inj-label">${label}</div>
+        <div class="next-inj-value">${formatDate(next)} · ${last.dose}</div>
+        ${dayText ? `<div class="next-inj-days">${dayText}</div>` : ''}
+      </div>
+      <button onclick="addToGoogleCalendar(${lastIdx})" aria-label="Aggiungi a Google Calendar" title="Aggiungi prossima puntura a Google Calendar"
+        style="width:40px;height:40px;border-radius:var(--radius-md);display:flex;align-items:center;justify-content:center;color:var(--color-injection);background:var(--color-injection-soft);border:1px solid oklch(from var(--color-injection) l c h / 0.2);cursor:pointer;flex-shrink:0">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/><path d="M8 14h.01M12 14h.01M16 14h.01"/></svg>
+      </button>
+    </div>`;
+}
+
+function renderKPIs() {
+  const grid = document.getElementById('kpiGrid');
+  const wData = measurements.filter(m => m.weight !== null);
+  const cData = measurements.filter(m => m.chest !== null);
+  const today = todayStr();
+
+  let weightHTML, chestHTML, startWeightHTML, totalInjHTML;
+
+  // Current weight
+  if(wData.length > 0) {
+    const cur = wData[wData.length - 1];
+    const prev = wData.length > 1 ? wData[wData.length - 2] : null;
+    const delta = prev ? (cur.weight - prev.weight).toFixed(1) : null;
+    const deltaClass = delta !== null ? (parseFloat(delta) < 0 ? 'down' : parseFloat(delta) > 0 ? 'up' : 'neutral') : 'neutral';
+    const deltaSign = delta !== null ? (parseFloat(delta) > 0 ? '+' : '') : '';
+    weightHTML = `
+      <div class="kpi-card accent">
+        <div class="kpi-label">Peso attuale</div>
+        <div class="kpi-value primary">${cur.weight}<small style="font-size:0.55em"> kg</small></div>
+        ${delta !== null ? `<div class="kpi-delta ${deltaClass}">${deltaSign}${delta} kg</div>` : '<div class="kpi-delta neutral">—</div>'}
+      </div>`;
+  } else {
+    weightHTML = `<div class="kpi-card"><div class="kpi-label">Peso attuale</div><div class="kpi-value primary" style="font-size:1.2rem;opacity:0.4">—</div><div class="kpi-delta neutral">nessun dato</div></div>`;
+  }
+
+  // Current chest
+  if(cData.length > 0) {
+    const cur = cData[cData.length - 1];
+    const prev = cData.length > 1 ? cData[cData.length - 2] : null;
+    const delta = prev ? (cur.chest - prev.chest).toFixed(1) : null;
+    const deltaClass = delta !== null ? (parseFloat(delta) < 0 ? 'down' : parseFloat(delta) > 0 ? 'up' : 'neutral') : 'neutral';
+    const deltaSign = delta !== null ? (parseFloat(delta) > 0 ? '+' : '') : '';
+    chestHTML = `
+      <div class="kpi-card">
+        <div class="kpi-label">Torace attuale</div>
+        <div class="kpi-value" style="color:var(--color-accent)">${cur.chest}<small style="font-size:0.55em"> cm</small></div>
+        ${delta !== null ? `<div class="kpi-delta ${deltaClass}">${deltaSign}${delta} cm</div>` : '<div class="kpi-delta neutral">—</div>'}
+      </div>`;
+  } else {
+    chestHTML = `<div class="kpi-card"><div class="kpi-label">Torace attuale</div><div class="kpi-value" style="font-size:1.2rem;opacity:0.4">—</div><div class="kpi-delta neutral">nessun dato</div></div>`;
+  }
+
+  // Total weight loss
+  if(wData.length >= 2) {
+    const first = wData[0];
+    const last = wData[wData.length - 1];
+    const total = (last.weight - first.weight).toFixed(1);
+    const sign = parseFloat(total) > 0 ? '+' : '';
+    const cls = parseFloat(total) < 0 ? 'down' : 'up';
+    startWeightHTML = `
+      <div class="kpi-card">
+        <div class="kpi-label">Calo totale</div>
+        <div class="kpi-value ${cls === 'down' ? 'primary' : ''}" style="font-size:1.4rem">${sign}${total}<small style="font-size:0.55em"> kg</small></div>
+        <div class="kpi-delta neutral">da ${formatDate(first.date)}</div>
+      </div>`;
+  } else {
+    startWeightHTML = `<div class="kpi-card"><div class="kpi-label">Calo totale</div><div class="kpi-value" style="font-size:1.2rem;opacity:0.4">—</div><div class="kpi-delta neutral">servono ≥2 misurazioni</div></div>`;
+  }
+
+  // Total injections
+  totalInjHTML = `
+    <div class="kpi-card injection-card">
+      <div class="kpi-label">Punture totali</div>
+      <div class="kpi-value injection">${injections.length}<small style="font-size:0.55em"> sett.</small></div>
+      ${injections.length > 0 ? `<div class="kpi-delta neutral">Ultima: ${formatDate(injections[injections.length-1].date)}</div>` : '<div class="kpi-delta neutral">nessuna</div>'}
+    </div>`;
+
+  grid.innerHTML = weightHTML + chestHTML + startWeightHTML + totalInjHTML;
+}
+
+function renderCharts() {
+  const isDark = document.documentElement.getAttribute('data-theme') === 'dark';
+  const textColor = isDark ? '#c8daca' : '#1a2b1c';
+  const gridColor = isDark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.06)';
+  const primaryColor = isDark ? '#4caf78' : '#1a7a4a';
+  const accentColor = isDark ? '#5ec090' : '#2e9b6a';
+
+  const wData = measurements.filter(m => m.weight !== null);
+  const cData = measurements.filter(m => m.chest !== null);
+
+  // WEIGHT CHART
+  const wCtx = document.getElementById('weightChart').getContext('2d');
+  if(weightChartInst) { weightChartInst.destroy(); }
+  if(wData.length < 2) {
+    wCtx.clearRect(0, 0, 999, 999);
+    weightChartInst = null;
+    document.getElementById('weightChart').style.display = 'none';
+    if(!document.getElementById('weightNoData')) {
+      const nd = document.createElement('div');
+      nd.id = 'weightNoData';
+      nd.className = 'no-data-chart';
+      nd.textContent = 'Aggiungi almeno 2 misurazioni';
+      document.getElementById('weightChart').parentNode.appendChild(nd);
+    }
+  } else {
+    document.getElementById('weightChart').style.display = 'block';
+    const el = document.getElementById('weightNoData');
+    if(el) el.remove();
+    weightChartInst = new Chart(wCtx, {
+      type: 'line',
+      data: {
+        labels: wData.map(m => formatDate(m.date)),
+        datasets: [{
+          label: 'Peso (kg)',
+          data: wData.map(m => m.weight),
+          borderColor: primaryColor,
+          backgroundColor: isDark ? 'rgba(76,175,120,0.1)' : 'rgba(26,122,74,0.08)',
+          borderWidth: 2.5,
+          pointBackgroundColor: primaryColor,
+          pointRadius: 4,
+          pointHoverRadius: 6,
+          tension: 0.3,
+          fill: true,
+        }]
+      },
+      options: {
+        responsive: true, maintainAspectRatio: false,
+        plugins: {
+          legend: { display: false },
+          tooltip: {
+            backgroundColor: isDark ? '#1c2a1e' : '#fff',
+            titleColor: textColor,
+            bodyColor: textColor,
+            borderColor: isDark ? '#2a3c2c' : '#d6ddd7',
+            borderWidth: 1,
+            padding: 10,
+            callbacks: { label: ctx => ` ${ctx.raw} kg` }
+          }
+        },
+        scales: {
+          x: {
+            ticks: { color: isDark ? '#7a9c7e' : '#5a7060', font: { size: 11 }, maxTicksLimit: 6 },
+            grid: { color: gridColor }
+          },
+          y: {
+            ticks: { color: isDark ? '#7a9c7e' : '#5a7060', font: { size: 11 } },
+            grid: { color: gridColor }
+          }
+        }
+      }
+    });
+  }
+
+  // CHEST CHART
+  const cCtx = document.getElementById('chestChart').getContext('2d');
+  if(chestChartInst) { chestChartInst.destroy(); }
+  if(cData.length < 2) {
+    cCtx.clearRect(0, 0, 999, 999);
+    chestChartInst = null;
+    document.getElementById('chestChart').style.display = 'none';
+    if(!document.getElementById('chestNoData')) {
+      const nd = document.createElement('div');
+      nd.id = 'chestNoData';
+      nd.className = 'no-data-chart';
+      nd.textContent = 'Aggiungi almeno 2 misurazioni';
+      document.getElementById('chestChart').parentNode.appendChild(nd);
+    }
+  } else {
+    document.getElementById('chestChart').style.display = 'block';
+    const el = document.getElementById('chestNoData');
+    if(el) el.remove();
+    chestChartInst = new Chart(cCtx, {
+      type: 'line',
+      data: {
+        labels: cData.map(m => formatDate(m.date)),
+        datasets: [{
+          label: 'Torace (cm)',
+          data: cData.map(m => m.chest),
+          borderColor: accentColor,
+          backgroundColor: isDark ? 'rgba(94,192,144,0.1)' : 'rgba(46,155,106,0.08)',
+          borderWidth: 2.5,
+          pointBackgroundColor: accentColor,
+          pointRadius: 4,
+          pointHoverRadius: 6,
+          tension: 0.3,
+          fill: true,
+        }]
+      },
+      options: {
+        responsive: true, maintainAspectRatio: false,
+        plugins: {
+          legend: { display: false },
+          tooltip: {
+            backgroundColor: isDark ? '#1c2a1e' : '#fff',
+            titleColor: textColor,
+            bodyColor: textColor,
+            borderColor: isDark ? '#2a3c2c' : '#d6ddd7',
+            borderWidth: 1,
+            padding: 10,
+            callbacks: { label: ctx => ` ${ctx.raw} cm` }
+          }
+        },
+        scales: {
+          x: {
+            ticks: { color: isDark ? '#7a9c7e' : '#5a7060', font: { size: 11 }, maxTicksLimit: 6 },
+            grid: { color: gridColor }
+          },
+          y: {
+            ticks: { color: isDark ? '#7a9c7e' : '#5a7060', font: { size: 11 } },
+            grid: { color: gridColor }
+          }
+        }
+      }
+    });
+  }
+}
+
+// =====================
+// HISTORY VIEW
+// =====================
+function renderHistory() {
+  const mDiv = document.getElementById('measureHistory');
+  const iDiv = document.getElementById('injectionHistory');
+
+  if(measurements.length === 0) {
+    mDiv.innerHTML = `
+      <div class="empty-state">
+        <div class="empty-state-icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="3" width="18" height="18" rx="3"/><path d="M8 12h8M8 8h4M8 16h6"/></svg>
+        </div>
+        <h3>Nessuna misurazione</h3>
+        <p>Aggiungi la tua prima misurazione dalla sezione Aggiungi.</p>
+      </div>`;
+  } else {
+    const sorted = [...measurements].reverse();
+    mDiv.innerHTML = `<div class="history-list">${sorted.map((m, i) => {
+      const idx = measurements.indexOf(m);
+      return `
+        <div class="history-item">
+          <div>
+            <div class="history-date">${formatDate(m.date)}</div>
+            <div style="display:flex;gap:var(--space-2);margin-top:4px;flex-wrap:wrap">
+              ${m.weight !== null ? `<span class="tag-weight">⚖️ ${m.weight} kg</span>` : ''}
+              ${m.chest !== null ? `<span class="tag-chest">📏 ${m.chest} cm</span>` : ''}
+            </div>
+          </div>
+          <button class="history-delete" onclick="deleteMeasurement(${idx})" aria-label="Elimina">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14H6L5 6"/><path d="M10 11v6M14 11v6"/><path d="M9 6V4h6v2"/></svg>
+          </button>
+        </div>`;
+    }).join('')}</div>`;
+  }
+
+  if(injections.length === 0) {
+    iDiv.innerHTML = `
+      <div class="empty-state" style="padding:var(--space-8) var(--space-4)">
+        <div class="empty-state-icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M10.5 2.5L7 6M14 6l2 2M6 18l-2 2M17.5 6.5l2-2M12 12l-8 8M9.5 14.5L4 20M15 9l-6 6"/></svg>
+        </div>
+        <h3>Nessuna puntura</h3>
+        <p>Registra la prima puntura Mounjaro.</p>
+      </div>`;
+  } else {
+    const sorted = [...injections].reverse();
+    iDiv.innerHTML = sorted.map((inj, i) => {
+      const idx = injections.indexOf(inj);
+      return `
+        <div class="injection-item">
+          <div class="injection-icon">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10.5 2.5L7 6M14 6l2 2M6 18l-2 2M17.5 6.5l2-2M12 12l-8 8M9.5 14.5L4 20M15 9l-6 6"/><path d="M20 4l-3.5 3.5"/></svg>
+          </div>
+          <div class="injection-info">
+            <div class="injection-date">${formatDate(inj.date)}${inj.time ? ' · ' + inj.time : ''}</div>
+            <div class="injection-dose">${inj.notes || 'nessuna nota'}</div>
+          </div>
+          <span class="injection-badge">${inj.dose}</span>
+          <button class="gcal-btn" onclick="addToGoogleCalendar(${idx})" aria-label="Aggiungi a Google Calendar" title="Aggiungi prossima puntura a Google Calendar" style="margin-left:var(--space-2);width:32px;height:32px;border-radius:var(--radius-md);display:flex;align-items:center;justify-content:center;color:var(--color-injection);background:var(--color-injection-soft);border:none;cursor:pointer;flex-shrink:0">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/><path d="M8 14h.01M12 14h.01M16 14h.01M8 18h.01M12 18h.01"/></svg>
+          </button>
+          <button class="history-delete" onclick="deleteInjection(${idx})" aria-label="Elimina" style="margin-left:var(--space-1)">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14H6L5 6"/><path d="M10 11v6M14 11v6"/><path d="M9 6V4h6v2"/></svg>
+          </button>
+        </div>`;
+    }).join('');
+  }
+}
+
+function deleteMeasurement(idx) {
+  measurements.splice(idx, 1);
+  saveData();
+  if(weightChartInst) { weightChartInst.destroy(); weightChartInst = null; }
+  if(chestChartInst) { chestChartInst.destroy(); chestChartInst = null; }
+  renderHistory();
+  showToast('🗑️ Misurazione eliminata');
+}
+
+function deleteInjection(idx) {
+  injections.splice(idx, 1);
+  saveData();
+  renderHistory();
+  showToast('🗑️ Puntura eliminata');
+}
+
+// =====================
+// STATS VIEW
+// =====================
+function switchStatTab(period, btn) {
+  document.querySelectorAll('.stats-tab').forEach(t => t.classList.remove('active'));
+  document.querySelectorAll('.stat-section').forEach(s => s.classList.remove('active'));
+  btn.classList.add('active');
+  document.getElementById('stat-' + period).classList.add('active');
+  renderStatPeriod(period);
+}
+
+function renderStats() {
+  renderStatPeriod('settimanale');
+}
+
+function getPeriodMeasurements(period) {
+  const today = new Date(todayStr());
+  let start;
+  if(period === 'settimanale') {
+    start = new Date(today);
+    start.setDate(today.getDate() - 7);
+  } else if(period === 'mensile') {
+    start = new Date(today);
+    start.setMonth(today.getMonth() - 1);
+  } else {
+    return measurements;
+  }
+  const startStr = start.toISOString().slice(0, 10);
+  return measurements.filter(m => m.date >= startStr);
+}
+
+function renderStatPeriod(period) {
+  const container = document.getElementById('stat-' + period);
+  const data = getPeriodMeasurements(period);
+  const wData = data.filter(m => m.weight !== null);
+  const cData = data.filter(m => m.chest !== null);
+
+  let periodLabel = period === 'settimanale' ? 'ultimi 7 giorni' :
+                    period === 'mensile' ? 'ultimo mese' : "dall'inizio";
+
+  // Injections in period
+  const today = new Date(todayStr());
+  let injStart;
+  if(period === 'settimanale') { injStart = new Date(today); injStart.setDate(today.getDate() - 7); }
+  else if(period === 'mensile') { injStart = new Date(today); injStart.setMonth(today.getMonth() - 1); }
+  else { injStart = new Date('2000-01-01'); }
+  const injStartStr = injStart.toISOString().slice(0, 10);
+  const periodInj = injections.filter(i => i.date >= injStartStr);
+
+  // Weight stats
+  let weightDelta = null, weightStart = null, weightEnd = null;
+  if(wData.length >= 2) {
+    weightStart = wData[0].weight;
+    weightEnd = wData[wData.length - 1].weight;
+    weightDelta = (weightEnd - weightStart).toFixed(1);
+  } else if(wData.length === 1 && period === 'totale') {
+    weightStart = wData[0].weight;
+    weightEnd = wData[0].weight;
+    weightDelta = '0.0';
+  }
+
+  // Chest stats
+  let chestDelta = null, chestStart = null, chestEnd = null;
+  if(cData.length >= 2) {
+    chestStart = cData[0].chest;
+    chestEnd = cData[cData.length - 1].chest;
+    chestDelta = (chestEnd - chestStart).toFixed(1);
+  } else if(cData.length === 1 && period === 'totale') {
+    chestStart = cData[0].chest;
+    chestEnd = cData[0].chest;
+    chestDelta = '0.0';
+  }
+
+  // BMI (if we have weight, assume height from first entry — ask user can set target weight)
+  // Average weight in period
+  const avgWeight = wData.length > 0 ? (wData.reduce((s,m) => s + m.weight, 0) / wData.length).toFixed(1) : null;
+  const avgChest = cData.length > 0 ? (cData.reduce((s,m) => s + m.chest, 0) / cData.length).toFixed(1) : null;
+
+  const noDataHTML = `<div class="empty-state"><div class="empty-state-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M18 20V10M12 20V4M6 20v-6"/></svg></div><h3>Nessun dato</h3><p>Aggiungi misurazioni per vedere le statistiche ${periodLabel}.</p></div>`;
+
+  if(data.length === 0 && periodInj.length === 0) {
+    container.innerHTML = `<div class="card">${noDataHTML}</div>`;
+    return;
+  }
+
+  let html = '';
+
+  // PERIOD INFO
+  html += `<p class="section-subtitle">Statistiche ${periodLabel}</p>`;
+
+  // WEIGHT SECTION
+  html += `<div class="card">
+    <div class="card-title">
+      <svg class="card-title-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+      Peso
+    </div>`;
+  if(wData.length === 0) {
+    html += `<p style="color:var(--color-text-faint);font-size:var(--text-sm)">Nessun dato peso ${periodLabel}.</p>`;
+  } else {
+    const deltaClass = weightDelta !== null ? (parseFloat(weightDelta) < 0 ? '#2e7d32' : parseFloat(weightDelta) > 0 ? '#c62828' : 'var(--color-text-muted)') : 'var(--color-text-muted)';
+    const deltaSign = weightDelta !== null && parseFloat(weightDelta) > 0 ? '+' : '';
+    const deltaIcon = weightDelta !== null ? (parseFloat(weightDelta) < 0 ? '▼' : parseFloat(weightDelta) > 0 ? '▲' : '●') : '';
+    html += `<div class="stat-row">
+      ${weightDelta !== null ? `<div class="stat-box"><div class="stat-box-label">Variazione</div><div class="stat-box-value" style="color:${deltaClass}">${deltaIcon} ${deltaSign}${weightDelta} kg</div></div>` : ''}
+      ${avgWeight ? `<div class="stat-box"><div class="stat-box-label">Media</div><div class="stat-box-value">${avgWeight} kg</div></div>` : ''}
+    </div>`;
+    if(weightStart !== null && weightEnd !== null) {
+      html += `<div class="stat-row">
+        <div class="stat-box"><div class="stat-box-label">Inizio periodo</div><div class="stat-box-value neutral">${weightStart} kg</div><div class="stat-box-sub">${formatDate(wData[0].date)}</div></div>
+        <div class="stat-box"><div class="stat-box-label">Fine periodo</div><div class="stat-box-value">${weightEnd} kg</div><div class="stat-box-sub">${formatDate(wData[wData.length-1].date)}</div></div>
+      </div>`;
+      if(weightDelta !== null && parseFloat(weightDelta) < 0) {
+        const pct = Math.abs((parseFloat(weightDelta) / weightStart) * 100).toFixed(1);
+        html += `<div class="stat-box" style="margin-top:var(--space-2)"><div class="stat-box-label">Percentuale calo</div><div class="stat-box-value">${pct}%</div></div>`;
+      }
+    }
+    html += `<div class="stat-box-label" style="margin-top:var(--space-3)">${wData.length} misurazion${wData.length === 1 ? 'e' : 'i'}</div>`;
+  }
+  html += `</div>`;
+
+  // CHEST SECTION
+  html += `<div class="card">
+    <div class="card-title">
+      <svg class="card-title-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="color:var(--color-accent)"><circle cx="12" cy="12" r="10"/><path d="M8 12a4 4 0 0 0 8 0"/></svg>
+      Torace
+    </div>`;
+  if(cData.length === 0) {
+    html += `<p style="color:var(--color-text-faint);font-size:var(--text-sm)">Nessun dato torace ${periodLabel}.</p>`;
+  } else {
+    const deltaClass = chestDelta !== null ? (parseFloat(chestDelta) < 0 ? '#2e7d32' : parseFloat(chestDelta) > 0 ? '#c62828' : 'var(--color-text-muted)') : 'var(--color-text-muted)';
+    const deltaSign = chestDelta !== null && parseFloat(chestDelta) > 0 ? '+' : '';
+    const deltaIcon = chestDelta !== null ? (parseFloat(chestDelta) < 0 ? '▼' : parseFloat(chestDelta) > 0 ? '▲' : '●') : '';
+    html += `<div class="stat-row">
+      ${chestDelta !== null ? `<div class="stat-box"><div class="stat-box-label">Variazione</div><div class="stat-box-value chest" style="color:${deltaClass}">${deltaIcon} ${deltaSign}${chestDelta} cm</div></div>` : ''}
+      ${avgChest ? `<div class="stat-box"><div class="stat-box-label">Media</div><div class="stat-box-value chest">${avgChest} cm</div></div>` : ''}
+    </div>`;
+    if(chestStart !== null && chestEnd !== null) {
+      html += `<div class="stat-row">
+        <div class="stat-box"><div class="stat-box-label">Inizio periodo</div><div class="stat-box-value neutral">${chestStart} cm</div><div class="stat-box-sub">${formatDate(cData[0].date)}</div></div>
+        <div class="stat-box"><div class="stat-box-label">Fine periodo</div><div class="stat-box-value chest">${chestEnd} cm</div><div class="stat-box-sub">${formatDate(cData[cData.length-1].date)}</div></div>
+      </div>`;
+    }
+    html += `<div class="stat-box-label" style="margin-top:var(--space-3)">${cData.length} misurazion${cData.length === 1 ? 'e' : 'i'}</div>`;
+  }
+  html += `</div>`;
+
+  // INJECTIONS SECTION
+  html += `<div class="card">
+    <div class="card-title">
+      <svg class="card-title-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="color:var(--color-injection)"><path d="M10.5 2.5L7 6M14 6l2 2M6 18l-2 2M17.5 6.5l2-2M12 12l-8 8M9.5 14.5L4 20M15 9l-6 6"/><path d="M20 4l-3.5 3.5"/></svg>
+      Punture Mounjaro
+    </div>`;
+  if(periodInj.length === 0) {
+    html += `<p style="color:var(--color-text-faint);font-size:var(--text-sm)">Nessuna puntura ${periodLabel}.</p>`;
+  } else {
+    html += `<div class="stat-row">
+      <div class="stat-box"><div class="stat-box-label">N° punture</div><div class="stat-box-value" style="color:var(--color-injection)">${periodInj.length}</div></div>
+      <div class="stat-box"><div class="stat-box-label">Dosaggio attuale</div><div class="stat-box-value neutral" style="font-size:var(--text-sm)">${periodInj[periodInj.length-1].dose}</div></div>
+    </div>`;
+    // Doses used breakdown
+    const doseMap = {};
+    periodInj.forEach(i => { doseMap[i.dose] = (doseMap[i.dose] || 0) + 1; });
+    const doseKeys = Object.keys(doseMap);
+    if(doseKeys.length > 1) {
+      html += `<div style="margin-top:var(--space-3)">
+        <div class="stat-box-label" style="margin-bottom:var(--space-2)">Dosaggi usati</div>
+        ${doseKeys.map(k => `<div class="history-item" style="margin-bottom:var(--space-2)">
+          <span style="font-size:var(--text-sm)">${k}</span>
+          <span class="injection-badge">${doseMap[k]}×</span>
+        </div>`).join('')}
+      </div>`;
+    }
+  }
+  html += `</div>`;
+
+  container.innerHTML = html;
+}
+
+// =====================
+// INIT
+// =====================
+renderHome();
+</script>
+</body>
+</html>
