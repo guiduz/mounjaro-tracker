@@ -8,6 +8,8 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,300..700;1,9..40,300..700&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/hammerjs@2.0.8/hammer.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-zoom@2.0.1/dist/chartjs-plugin-zoom.min.js"></script>
   <style>
     /* === ART DIRECTION === */
     :root, [data-theme="light"] {
@@ -197,7 +199,7 @@
     .btn-injection { background: var(--color-injection); color: white; }
     .btn-ghost { background: transparent; color: var(--color-text-muted); border: 1.5px solid var(--color-border); }
     .btn-full { width: 100%; }
-    
+
     /* CHIP (Sintomi) */
     .chip-group { display: flex; flex-wrap: wrap; gap: var(--space-2); }
     .chip { padding: 6px 14px; border-radius: var(--radius-full); font-size: var(--text-sm); font-weight: 500; background: var(--color-surface-2); color: var(--color-text-muted); border: 1px solid var(--color-border); cursor: pointer; transition: all var(--transition); }
@@ -206,7 +208,16 @@
 
     /* CHARTS */
     .chart-wrap { position: relative; width: 100%; height: 200px; }
+    .chart-wrap-tall { position: relative; width: 100%; height: 260px; }
     .no-data-chart { display: flex; align-items: center; justify-content: center; height: 200px; color: var(--color-text-faint); font-size: var(--text-sm); border: 1.5px dashed var(--color-border); border-radius: var(--radius-lg); }
+
+    /* DOSE LEGEND */
+    .dose-legend { display: flex; flex-wrap: wrap; gap: 6px; margin-top: var(--space-3); }
+    .dose-legend-item { display: flex; align-items: center; gap: 5px; font-size: var(--text-xs); color: var(--color-text-muted); background: var(--color-surface-2); border-radius: var(--radius-full); padding: 3px 8px; border: 1px solid var(--color-border); }
+    .dose-legend-dot { width: 9px; height: 9px; border-radius: 2px; flex-shrink: 0; }
+    .chart-zoom-row { display: flex; align-items: center; justify-content: space-between; margin-bottom: var(--space-2); }
+    .zoom-hint { font-size: var(--text-xs); color: var(--color-text-faint); }
+    .reset-zoom-btn { font-size: var(--text-xs); padding: 3px 10px; border-radius: var(--radius-full); background: var(--color-surface-2); color: var(--color-primary); border: 1px solid var(--color-border); cursor: pointer; font-weight: 600; display: none; }
 
     /* HISTORY */
     .history-list { display: flex; flex-direction: column; gap: var(--space-2); }
@@ -233,6 +244,35 @@
     .stat-box-label { font-size: var(--text-xs); color: var(--color-text-muted); text-transform: uppercase; font-weight: 600; margin-bottom: var(--space-1); }
     .stat-box-value { font-size: var(--text-lg); font-weight: 700; font-family: var(--font-mono); color: var(--color-primary); }
 
+    /* Monthly stats */
+    .month-row { display: flex; align-items: center; justify-content: space-between; padding: var(--space-2) var(--space-3); border-radius: var(--radius-md); background: var(--color-surface-2); margin-bottom: var(--space-2); border: 1px solid oklch(from var(--color-border) l c h / 0.4); }
+    .month-label { font-size: var(--text-sm); font-weight: 500; color: var(--color-text); }
+    .month-delta { font-size: var(--text-sm); font-weight: 700; font-family: var(--font-mono); }
+    .month-delta.loss { color: var(--color-success); }
+    .month-delta.gain { color: var(--color-error); }
+
+    /* Dose phase card */
+    .dose-phase-card { background: var(--color-primary-soft); border: 1px solid var(--color-primary-highlight); border-radius: var(--radius-xl); padding: var(--space-4); margin-bottom: var(--space-4); }
+    .dose-phase-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: var(--space-2); }
+    .dose-phase-title { font-size: var(--text-sm); font-weight: 700; color: var(--color-primary); display: flex; align-items: center; gap: var(--space-2); }
+    .dose-phase-badge { font-family: var(--font-mono); font-size: var(--text-lg); font-weight: 700; color: var(--color-primary); }
+    .dose-phase-next { font-size: var(--text-xs); color: var(--color-text-muted); text-align: right; }
+    .dose-progress-track { height: 8px; background: oklch(from var(--color-primary) l c h / 0.15); border-radius: var(--radius-full); overflow: hidden; margin: var(--space-2) 0; }
+    .dose-progress-fill { height: 100%; background: var(--color-primary); border-radius: var(--radius-full); transition: width 0.5s cubic-bezier(0.16,1,0.3,1); }
+    .dose-progress-labels { display: flex; justify-content: space-between; font-size: var(--text-xs); color: var(--color-text-muted); }
+    .dose-progress-labels span { font-weight: 600; color: var(--color-primary); }
+
+    /* Sintomi per dose */
+    .dose-sym-block { margin-bottom: var(--space-3); padding: var(--space-3); background: var(--color-surface-2); border-radius: var(--radius-lg); border: 1px solid oklch(from var(--color-border) l c h / 0.4); }
+    .dose-sym-title { font-size: var(--text-xs); font-weight: 700; color: var(--color-text-muted); text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: var(--space-2); display: flex; justify-content: space-between; }
+    .dose-sym-pills { display: flex; flex-wrap: wrap; gap: 5px; }
+    .dose-sym-pill { font-size: var(--text-xs); padding: 3px 9px; border-radius: var(--radius-full); background: var(--color-surface); border: 1px solid var(--color-border); color: var(--color-text-muted); display: flex; align-items: center; gap: 4px; }
+    .dose-sym-pill strong { color: var(--color-text); font-family: var(--font-mono); }
+    .dose-no-sym { font-size: var(--text-xs); color: var(--color-text-faint); font-style: italic; }
+
+    /* optgroup styling */
+    optgroup { font-weight: 700; color: var(--color-text-muted); }
+
     /* EXPORT BUTTON */
     .export-btn-container { text-align: center; margin-bottom: var(--space-4); }
 
@@ -249,7 +289,7 @@
     select.form-input { background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%235a7060' stroke-width='2'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E"); background-repeat: no-repeat; background-position: right var(--space-3) center; padding-right: var(--space-10); appearance: none; }
     .spin { animation: spin 1s linear infinite; display: inline-block; }
     @keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
-    
+
     /* MODAL & TOAST */
     .modal-overlay { display: none; position: fixed; inset: 0; background: oklch(0 0 0 / 0.5); z-index: 200; align-items: flex-end; }
     .modal-overlay.open { display: flex; }
@@ -282,6 +322,22 @@
 
     <div class="kpi-grid" id="kpiGrid"></div>
 
+    <div id="dosePhaseCard"></div>
+
+    <!-- Andamento Peso — PRIMO -->
+    <div class="card" id="weightChartCard">
+      <div class="card-title">
+        <svg class="card-title-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg> Andamento Peso
+      </div>
+      <div class="chart-zoom-row">
+        <span class="zoom-hint">🔍 Pizzica/scorri per zoomare</span>
+        <button class="reset-zoom-btn" id="resetZoomBtn" onclick="resetWeightZoom()">Reset zoom</button>
+      </div>
+      <div class="chart-wrap-tall"><canvas id="weightChart"></canvas></div>
+      <div class="dose-legend" id="doseLegend"></div>
+    </div>
+
+    <!-- Curva Efficacia — SECONDO -->
     <div class="card" id="pharmaChartCard">
       <div class="card-title">
         <svg class="card-title-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="color:var(--color-injection)"><path d="M2 12h4l2-9 5 18 2-9h7"/></svg>
@@ -291,13 +347,6 @@
       <div class="chart-wrap">
         <canvas id="pharmaChart"></canvas>
       </div>
-    </div>
-
-    <div class="card" id="weightChartCard">
-      <div class="card-title">
-        <svg class="card-title-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg> Andamento Peso
-      </div>
-      <div class="chart-wrap"><canvas id="weightChart"></canvas></div>
     </div>
   </div>
 
@@ -337,9 +386,28 @@
           <div class="form-group">
             <label class="form-label" for="injSite">Sede iniezione</label>
             <select id="injSite" class="form-input">
-              <option value="Addome Dx">Addome Dx</option><option value="Addome Sx">Addome Sx</option>
-              <option value="Coscia Dx">Coscia Dx</option><option value="Coscia Sx">Coscia Sx</option>
-              <option value="Braccio Dx">Braccio Dx</option><option value="Braccio Sx">Braccio Sx</option>
+              <optgroup label="Addome superiore">
+                <option value="Add. Sup. Sx">Sx</option>
+                <option value="Add. Sup. Centro">Centro</option>
+                <option value="Add. Sup. Dx">Dx</option>
+              </optgroup>
+              <optgroup label="Addome inferiore">
+                <option value="Add. Inf. Sx">Sx</option>
+                <option value="Add. Inf. Centro">Centro</option>
+                <option value="Add. Inf. Dx">Dx</option>
+              </optgroup>
+              <optgroup label="Coscia">
+                <option value="Coscia Dx">Dx</option>
+                <option value="Coscia Sx">Sx</option>
+              </optgroup>
+              <optgroup label="Braccio">
+                <option value="Braccio Dx">Dx</option>
+                <option value="Braccio Sx">Sx</option>
+              </optgroup>
+              <optgroup label="Anca">
+                <option value="Anca Dx">Dx</option>
+                <option value="Anca Sx">Sx</option>
+              </optgroup>
             </select>
           </div>
         </div>
@@ -375,7 +443,7 @@
   </div>
 
   <div class="view" id="view-stats">
-    
+
     <div class="export-btn-container">
       <button class="btn btn-ghost" style="width: 100%; border-color:var(--color-primary); color:var(--color-primary)" onclick="exportCSV()">
         <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
@@ -434,7 +502,28 @@
       <div class="form-group">
         <label class="form-label" for="editInjSite">Sede</label>
         <select id="editInjSite" class="form-input">
-          <option value="Addome Dx">Addome Dx</option><option value="Addome Sx">Addome Sx</option><option value="Coscia Dx">Coscia Dx</option><option value="Coscia Sx">Coscia Sx</option><option value="Braccio Dx">Braccio Dx</option><option value="Braccio Sx">Braccio Sx</option>
+          <optgroup label="Addome superiore">
+            <option value="Add. Sup. Sx">Add. Sup. Sx</option>
+            <option value="Add. Sup. Centro">Add. Sup. Centro</option>
+            <option value="Add. Sup. Dx">Add. Sup. Dx</option>
+          </optgroup>
+          <optgroup label="Addome inferiore">
+            <option value="Add. Inf. Sx">Add. Inf. Sx</option>
+            <option value="Add. Inf. Centro">Add. Inf. Centro</option>
+            <option value="Add. Inf. Dx">Add. Inf. Dx</option>
+          </optgroup>
+          <optgroup label="Coscia">
+            <option value="Coscia Dx">Coscia Dx</option>
+            <option value="Coscia Sx">Coscia Sx</option>
+          </optgroup>
+          <optgroup label="Braccio">
+            <option value="Braccio Dx">Braccio Dx</option>
+            <option value="Braccio Sx">Braccio Sx</option>
+          </optgroup>
+          <optgroup label="Anca">
+            <option value="Anca Dx">Anca Dx</option>
+            <option value="Anca Sx">Anca Sx</option>
+          </optgroup>
         </select>
       </div>
     </div>
@@ -448,8 +537,24 @@
 const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbwpTavvUPYxNAbgWFbgP-nCjuGtKfLVAggKcfojMU2f7aDLTZ8qW21cwnTBYXoqfy4m9Q/exec';
 let measurements = []; let injections = [];
 let weightChartInst = null; let chestChartInst = null; let pharmaChartInst = null;
-let syncStatus = 'idle'; 
-const ROTATION_SITES = ['Addome Dx', 'Addome Sx', 'Coscia Dx', 'Coscia Sx', 'Braccio Dx', 'Braccio Sx'];
+let syncStatus = 'idle';
+const ROTATION_SITES = [
+  'Add. Sup. Sx', 'Add. Sup. Centro', 'Add. Sup. Dx',
+  'Add. Inf. Sx', 'Add. Inf. Centro', 'Add. Inf. Dx',
+  'Coscia Dx', 'Coscia Sx',
+  'Braccio Dx', 'Braccio Sx',
+  'Anca Dx', 'Anca Sx'
+];
+
+// Colori per dosaggio (usati nel grafico peso e nella legenda)
+const DOSE_COLORS = {
+  '2.5 mg': '#10b981',  // verde smeraldo
+  '5 mg':   '#3b82f6',  // blu
+  '7.5 mg': '#8b5cf6',  // viola
+  '10 mg':  '#f59e0b',  // ambra
+  '12.5 mg':'#ef4444',  // rosso
+  '15 mg':  '#ec4899',  // rosa
+};
 
 function normalizeDate(val) {
   if(!val) return null;
@@ -485,7 +590,7 @@ async function cloudLoad() {
 }
 async function cloudSave() {
   setSyncStatus('syncing');
-  try { const data = await gsFetch({ action: 'saveAll', measurements: JSON.stringify(measurements), injections: JSON.stringify(injections) }); if(data.error) throw new Error(); saveLocal(); setSyncStatus('ok'); return true; } 
+  try { const data = await gsFetch({ action: 'saveAll', measurements: JSON.stringify(measurements), injections: JSON.stringify(injections) }); if(data.error) throw new Error(); saveLocal(); setSyncStatus('ok'); return true; }
   catch(e) { saveLocal(); setSyncStatus('offline'); return false; }
 }
 function saveData() { saveLocal(); cloudSave(); }
@@ -519,13 +624,11 @@ function getSuggestedNextDose() {
 
 function getSuggestedSite() {
   if (injections.length === 0) return ROTATION_SITES[0];
-  // Prendi le ultime sedi usate (es. le ultime 3 per non ripeterle)
   const recentSites = injections.slice(-3).map(i => i.site).filter(Boolean);
-  // Trova la prima sede di ROTATION_SITES che NON è stata usata di recente
   for (const site of ROTATION_SITES) {
     if (!recentSites.includes(site)) return site;
   }
-  return ROTATION_SITES[0]; // fallback
+  return ROTATION_SITES[0];
 }
 
 // ===================== NAVIGATION =====================
@@ -538,11 +641,9 @@ function switchView(view, btn) {
   if(view === 'history') renderHistory();
   if(view === 'stats') renderStats();
   if(view === 'add') {
-    // Pre-imposta Dose e Sede consigliate
     const sugDose = getSuggestedNextDose();
     Array.from(document.getElementById('injDose').options).forEach(opt => { if(opt.value.startsWith(sugDose)) document.getElementById('injDose').value = opt.value; });
     document.getElementById('injSite').value = getSuggestedSite();
-    // Resetta chips
     document.querySelectorAll('#symptomChips .chip').forEach(c => c.classList.remove('active'));
   }
 }
@@ -558,6 +659,12 @@ const formatDate = d => { const p = d.split('-'); return `${p[2]}/${p[1]}/${p[0]
 const addDays = (d, n) => { const x = new Date(d); x.setDate(x.getDate()+n); return x.toISOString().slice(0, 10); };
 const diffDays = (a, b) => Math.round((new Date(b) - new Date(a)) / 86400000);
 
+function formatMonthLabel(yyyymm) {
+  const [y, m] = yyyymm.split('-');
+  const names = ['Gen','Feb','Mar','Apr','Mag','Giu','Lug','Ago','Set','Ott','Nov','Dic'];
+  return `${names[parseInt(m)-1]} ${y}`;
+}
+
 document.getElementById('inputDate').value = todayStr(); document.getElementById('injDate').value = todayStr();
 
 document.getElementById('measureForm').addEventListener('submit', e => {
@@ -571,7 +678,6 @@ document.getElementById('measureForm').addEventListener('submit', e => {
   showToast('✅ Misurazione salvata!'); renderHome();
 });
 
-// Sintomi Chips logic
 document.querySelectorAll('#symptomChips .chip').forEach(chip => {
   chip.addEventListener('click', () => chip.classList.toggle('active'));
 });
@@ -583,12 +689,10 @@ document.getElementById('injectionForm').addEventListener('submit', e => {
   const dose = document.getElementById('injDose').value.split(' (')[0];
   const site = document.getElementById('injSite').value;
   const notes = document.getElementById('injNotes').value;
-  
   const symptoms = Array.from(document.querySelectorAll('#symptomChips .chip.active')).map(b => b.dataset.val);
-
   injections.push({ date, time, dose, site, symptoms, notes });
   injections.sort((a, b) => a.date.localeCompare(b.date)); saveData();
-  document.getElementById('injDate').value = todayStr(); document.getElementById('injNotes').value = ''; 
+  document.getElementById('injDate').value = todayStr(); document.getElementById('injNotes').value = '';
   document.querySelectorAll('#symptomChips .chip').forEach(c => c.classList.remove('active'));
   showToast('💉 Puntura registrata!');
 });
@@ -607,7 +711,7 @@ function saveMeasEdit() {
 }
 function editInjection(idx) {
   const inj = injections[idx]; document.getElementById('editInjIdx').value = idx; document.getElementById('editInjDate').value = inj.date;
-  document.getElementById('editInjTime').value = inj.time||''; document.getElementById('editInjDose').value = inj.dose; 
+  document.getElementById('editInjTime').value = inj.time||''; document.getElementById('editInjDose').value = inj.dose;
   if(inj.site) document.getElementById('editInjSite').value = inj.site;
   document.getElementById('editInjNotes').value = (inj.notes||'') + (inj.symptoms?.length ? ` [Sintomi: ${inj.symptoms.join(', ')}]` : '');
   document.getElementById('editInjModal').classList.add('open');
@@ -628,9 +732,64 @@ async function manualSync() { await cloudLoad(); renderHome(); renderHistory(); 
 function deleteMeasurement(idx) { measurements.splice(idx, 1); saveData(); renderHistory(); renderHome(); showToast('🗑️ Eliminata'); }
 function deleteInjection(idx) { injections.splice(idx, 1); saveData(); renderHistory(); renderHome(); showToast('🗑️ Eliminata'); }
 
+// ===================== DOSE PHASE =====================
+function getDosePhaseInfo() {
+  if (injections.length === 0) return null;
+  const protocol = ['2.5 mg', '5 mg', '7.5 mg', '10 mg', '12.5 mg', '15 mg'];
+  const currentDose = injections[injections.length - 1].dose.split(' (')[0];
+
+  // Conta punture consecutive al dosaggio corrente
+  let countAtCurrent = 0;
+  for (let i = injections.length - 1; i >= 0; i--) {
+    if (injections[i].dose === currentDose) countAtCurrent++;
+    else break;
+  }
+
+  const doseIdx = protocol.indexOf(currentDose);
+  const nextDose = (doseIdx !== -1 && doseIdx < protocol.length - 1) ? protocol[doseIdx + 1] : null;
+  const isMax = doseIdx === protocol.length - 1;
+  const injToNext = Math.max(0, 4 - countAtCurrent);
+
+  return { currentDose, countAtCurrent: Math.min(countAtCurrent, 4), nextDose, injToNext, isMax, doseIdx };
+}
+
+function renderDosePhase() {
+  const card = document.getElementById('dosePhaseCard');
+  const info = getDosePhaseInfo();
+  if (!info) { card.innerHTML = ''; return; }
+
+  const { currentDose, countAtCurrent, nextDose, injToNext, isMax } = info;
+  const pct = Math.round((countAtCurrent / 4) * 100);
+
+  const nextLine = isMax
+    ? '<span>Dose massima raggiunta 🎯</span>'
+    : `<span>${injToNext === 0 ? '→ Prossima puntura: <strong>' + nextDose + '</strong>' : 'Prossimo dosaggio: <strong>' + nextDose + '</strong> tra ' + injToNext + ' punt.'}</span>`;
+
+  card.innerHTML = `
+    <div class="dose-phase-card">
+      <div class="dose-phase-header">
+        <div>
+          <div class="dose-phase-title">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 3H5a2 2 0 0 0-2 2v4m6-6h10a2 2 0 0 1 2 2v4M9 3v18m0 0h10a2 2 0 0 0 2-2v-4M9 21H5a2 2 0 0 1-2-2v-4m0 0h18"/></svg>
+            Fase dosaggio
+          </div>
+          <div class="dose-phase-badge">${currentDose}</div>
+        </div>
+        <div class="dose-phase-next">${nextLine}</div>
+      </div>
+      <div class="dose-progress-track">
+        <div class="dose-progress-fill" style="width:${pct}%"></div>
+      </div>
+      <div class="dose-progress-labels">
+        <span>${countAtCurrent}/4 punture a questo dosaggio</span>
+        <span>${isMax ? '✓ Max' : pct + '%'}</span>
+      </div>
+    </div>`;
+}
+
 // ===================== HOME VIEW =====================
 function renderHome() {
-  renderKPIs(); renderNextInjection(); renderWeightChart(); renderPharmaChart();
+  renderKPIs(); renderNextInjection(); renderDosePhase(); renderWeightChart(); renderPharmaChart();
 }
 
 function renderNextInjection() {
@@ -641,10 +800,25 @@ function renderNextInjection() {
 
 function renderKPIs() {
   const wData = measurements.filter(m => m.weight !== null);
-  document.getElementById('kpiGrid').innerHTML = `
-    <div class="kpi-card accent"><div class="kpi-label">Peso attuale</div><div class="kpi-value primary">${wData.length?wData[wData.length-1].weight:'—'}<small style="font-size:0.55em"> kg</small></div></div>
-    <div class="kpi-card injection-card"><div class="kpi-label">Punture</div><div class="kpi-value injection">${injections.length}<small style="font-size:0.55em"> tot.</small></div></div>
-  `;
+  const currentWeight = wData.length ? wData[wData.length-1].weight : null;
+  const startWeight = wData.length ? wData[0].weight : null;
+  const totalLoss = (wData.length > 1 && currentWeight !== null && startWeight !== null)
+    ? (startWeight - currentWeight) : null;
+
+  const pesoCard = `
+    <div class="kpi-card accent">
+      <div class="kpi-label">Peso attuale</div>
+      <div class="kpi-value primary">${currentWeight !== null ? currentWeight : '—'}<small style="font-size:0.55em"> kg</small></div>
+      ${totalLoss !== null ? `<div class="kpi-delta ${totalLoss >= 0 ? 'down' : 'up'}">${totalLoss >= 0 ? '▼' : '▲'} ${Math.abs(totalLoss).toFixed(1)} kg calo max</div>` : ''}
+    </div>`;
+
+  const puntureCard = `
+    <div class="kpi-card injection-card">
+      <div class="kpi-label">Punture totali</div>
+      <div class="kpi-value injection">${injections.length}<small style="font-size:0.55em"> tot.</small></div>
+    </div>`;
+
+  document.getElementById('kpiGrid').innerHTML = pesoCard + puntureCard;
 }
 
 // === GRAFICO FARMACO ===
@@ -653,19 +827,26 @@ function renderPharmaChart() {
   if(pharmaChartInst) pharmaChartInst.destroy();
   if(injections.length === 0) { document.getElementById('pharmaChartCard').style.display = 'none'; return; }
   document.getElementById('pharmaChartCard').style.display = 'block';
-  
+
   const lastInj = injections[injections.length - 1];
-  const doseValue = parseFloat(lastInj.dose.replace(',', '.')); // Estrae il numero "5" da "5 mg"
-  
-  // Moltiplicatori approssimati della curva farmacocinetica Mounjaro per 7 giorni
+  const doseValue = parseFloat(lastInj.dose.replace(',', '.'));
   const curveMultipliers = [0.1, 0.6, 1.0, 0.85, 0.70, 0.55, 0.40, 0.25];
   const dataPoints = curveMultipliers.map(m => m * doseValue);
   const isDark = document.documentElement.getAttribute('data-theme') === 'dark';
 
+  // Etichette giorni reali basate sulla data dell'ultima iniezione
+  const dayNames = ['Dom', 'Lun', 'Mar', 'Mer', 'Gio', 'Ven', 'Sab'];
+  const injDate = new Date(lastInj.date + 'T12:00:00');
+  const startDay = injDate.getDay();
+  const chartLabels = Array.from({ length: 8 }, (_, i) => {
+    const dayLabel = dayNames[(startDay + i) % 7];
+    return i === 0 ? `${dayLabel} 💉` : dayLabel;
+  });
+
   pharmaChartInst = new Chart(pCtx, {
     type: 'line',
     data: {
-      labels: ['Iniez.', 'G1', 'G2', 'G3', 'G4', 'G5', 'G6', 'G7'],
+      labels: chartLabels,
       datasets: [{
         label: `Livello stimato (${lastInj.dose})`,
         data: dataPoints,
@@ -678,31 +859,270 @@ function renderPharmaChart() {
   });
 }
 
-// === GRAFICO PESO ===
+// === GRAFICO PESO CON PUNTURE + ZOOM ===
+function resetWeightZoom() {
+  if (weightChartInst) {
+    weightChartInst.resetZoom();
+    const btn = document.getElementById('resetZoomBtn');
+    if (btn) btn.style.display = 'none';
+  }
+}
+
 function renderWeightChart() {
   const wCtx = document.getElementById('weightChart').getContext('2d');
   if(weightChartInst) weightChartInst.destroy();
+
   const wData = measurements.filter(m => m.weight !== null);
-  if(wData.length < 2) return;
+  if(wData.length < 2) {
+    document.getElementById('doseLegend').innerHTML = '';
+    const btn = document.getElementById('resetZoomBtn');
+    if (btn) btn.style.display = 'none';
+    return;
+  }
+
   const isDark = document.documentElement.getAttribute('data-theme') === 'dark';
-  weightChartInst = new Chart(wCtx, {
+  const weights = wData.map(m => m.weight);
+  const minW = Math.min(...weights);
+  const maxW = Math.max(...weights);
+  const range = maxW - minW || 1;
+
+  // Posizione Y delle punture: sotto il minimo del peso
+  const injY = minW - Math.max(range * 0.18, 0.8);
+
+  // Dataset peso (linea)
+  const weightDataset = {
     type: 'line',
-    data: {
-      labels: wData.map(m => formatDate(m.date)),
-      datasets: [{ label: 'Peso', data: wData.map(m => m.weight), borderColor: isDark?'#4caf78':'#1a7a4a', backgroundColor: isDark?'rgba(76,175,120,0.1)':'rgba(26,122,74,0.08)', borderWidth: 2.5, tension: 0.3, fill: true }]
-    },
-    options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } } }
+    label: 'Peso (kg)',
+    data: wData.map(m => ({ x: new Date(m.date).getTime(), y: m.weight })),
+    borderColor: isDark ? '#4caf78' : '#1a7a4a',
+    backgroundColor: isDark ? 'rgba(76,175,120,0.1)' : 'rgba(26,122,74,0.08)',
+    borderWidth: 2.5,
+    tension: 0.3,
+    fill: true,
+    pointRadius: 4,
+    pointHoverRadius: 6,
+    order: 1,
+    yAxisID: 'y'
+  };
+
+  // Dataset punture (scatter, triangoli colorati per dosaggio)
+  const injDatasets = [];
+  if (injections.length > 0) {
+    injDatasets.push({
+      type: 'scatter',
+      label: 'Punture',
+      data: injections.map(inj => ({
+        x: new Date(inj.date).getTime(),
+        y: injY,
+        dose: inj.dose,
+        site: inj.site,
+        injDate: inj.date
+      })),
+      backgroundColor: injections.map(inj => DOSE_COLORS[inj.dose] || '#888'),
+      borderColor: injections.map(inj => DOSE_COLORS[inj.dose] || '#888'),
+      pointStyle: 'triangle',
+      pointRadius: 9,
+      pointHoverRadius: 12,
+      order: 0,
+      yAxisID: 'y'
+    });
+  }
+
+  // Calcola range X per i limiti dello zoom
+  const allTimestamps = [
+    ...wData.map(m => new Date(m.date).getTime()),
+    ...injections.map(i => new Date(i.date).getTime())
+  ];
+  const xMin = Math.min(...allTimestamps);
+  const xMax = Math.max(...allTimestamps);
+  const xPad = (xMax - xMin) * 0.05 || 86400000;
+
+  weightChartInst = new Chart(wCtx, {
+    data: { datasets: [weightDataset, ...injDatasets] },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      interaction: { mode: 'nearest', axis: 'x', intersect: false },
+      plugins: {
+        legend: { display: false },
+        tooltip: {
+          callbacks: {
+            title(items) {
+              if (!items.length) return '';
+              const raw = items[0].raw;
+              const dateStr = raw.injDate || new Date(items[0].parsed.x).toISOString().slice(0,10);
+              return formatDate(dateStr);
+            },
+            label(item) {
+              const raw = item.raw;
+              if (item.datasetIndex > 0 && raw.dose) {
+                return `💉 ${raw.dose}${raw.site ? ' · ' + raw.site : ''}`;
+              }
+              return `⚖️ ${item.parsed.y.toFixed(1)} kg`;
+            }
+          }
+        },
+        zoom: {
+          zoom: {
+            wheel: { enabled: true },
+            pinch: { enabled: true },
+            mode: 'x',
+            onZoom({ chart }) {
+              const btn = document.getElementById('resetZoomBtn');
+              if (btn) btn.style.display = 'inline-flex';
+            }
+          },
+          pan: {
+            enabled: true,
+            mode: 'x',
+            onPan({ chart }) {
+              const btn = document.getElementById('resetZoomBtn');
+              if (btn) btn.style.display = 'inline-flex';
+            }
+          },
+          limits: {
+            x: { min: xMin - xPad, max: xMax + xPad }
+          }
+        }
+      },
+      scales: {
+        x: {
+          type: 'linear',
+          min: xMin - xPad,
+          max: xMax + xPad,
+          ticks: {
+            maxTicksLimit: 6,
+            maxRotation: 0,
+            callback(val) {
+              const d = new Date(val);
+              return `${d.getDate()}/${d.getMonth()+1}`;
+            }
+          },
+          grid: { display: false }
+        },
+        y: {
+          min: injY - 0.3,
+          ticks: {
+            callback(v) {
+              // Nascondi le tick della zona punture
+              if (v < minW - 0.5) return '';
+              return v.toFixed(1) + ' kg';
+            }
+          },
+          grid: { color: isDark ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.05)' }
+        }
+      }
+    }
   });
+
+  // Legenda dosaggi usati
+  const usedDoses = [...new Set(injections.map(i => i.dose))].sort((a, b) => parseFloat(a) - parseFloat(b));
+  const legendEl = document.getElementById('doseLegend');
+  if (usedDoses.length > 0) {
+    legendEl.innerHTML = usedDoses.map(dose =>
+      `<div class="dose-legend-item">
+        <span class="dose-legend-dot" style="background:${DOSE_COLORS[dose] || '#888'}"></span>
+        ${dose}
+      </div>`
+    ).join('');
+  } else {
+    legendEl.innerHTML = '';
+  }
 }
 
 // ===================== HISTORY =====================
 function renderHistory() {
   document.getElementById('measureHistory').innerHTML = measurements.length === 0 ? '<div class="empty-state"><p>Nessuna misurazione</p></div>' : `<div class="history-list">${[...measurements].reverse().map((m, i) => `<div class="history-item"><div style="flex:1"><div class="history-date">${formatDate(m.date)}</div><div>${m.weight?`⚖️ ${m.weight} kg`:''} ${m.chest?`📏 ${m.chest} cm`:''}</div></div><button class="history-delete" onclick="editMeasurement(${measurements.indexOf(m)})">✏️</button><button class="history-delete" onclick="deleteMeasurement(${measurements.indexOf(m)})">🗑️</button></div>`).join('')}</div>`;
-  
+
   document.getElementById('injectionHistory').innerHTML = injections.length === 0 ? '<div class="empty-state"><p>Nessuna puntura</p></div>' : [...injections].reverse().map((inj, i) => {
     const idx = injections.indexOf(inj);
     return `<div class="injection-item"><div class="injection-icon">💉</div><div class="injection-info"><div class="injection-date">${formatDate(inj.date)}</div><div class="injection-dose">Sede: ${inj.site||'Non specificata'}</div></div><span class="injection-badge">${inj.dose}</span>${inj.symptoms?.length?`<div class="injection-symptoms">Sintomi: ${inj.symptoms.join(', ')}</div>`:''}<button class="history-delete" onclick="editInjection(${idx})">✏️</button><button class="history-delete" onclick="deleteInjection(${idx})">🗑️</button></div>`;
   }).join('');
+}
+
+// ===================== SYMPTOMS PER DOSE =====================
+function getSymptomsPerDose() {
+  const protocol = ['2.5 mg', '5 mg', '7.5 mg', '10 mg', '12.5 mg', '15 mg'];
+  const result = {};
+  injections.forEach(inj => {
+    const dose = inj.dose.split(' (')[0];
+    if (!result[dose]) result[dose] = { count: 0, symptoms: {} };
+    result[dose].count++;
+    if (inj.symptoms) {
+      inj.symptoms.filter(s => s !== 'Nessuno').forEach(s => {
+        result[dose].symptoms[s] = (result[dose].symptoms[s] || 0) + 1;
+      });
+    }
+  });
+  // Ordina per protocollo
+  return protocol.filter(d => result[d]).map(d => ({ dose: d, ...result[d] }));
+}
+
+function renderSymptomsPerDose() {
+  const data = getSymptomsPerDose();
+  if (data.length === 0) return '';
+
+  const blocks = data.map(({ dose, count, symptoms }) => {
+    const symEntries = Object.entries(symptoms).sort((a, b) => b[1] - a[1]);
+    const pillsHtml = symEntries.length > 0
+      ? symEntries.map(([s, n]) =>
+          `<div class="dose-sym-pill"><strong>${n}×</strong> ${s}</div>`
+        ).join('')
+      : '<span class="dose-no-sym">Nessun sintomo segnalato</span>';
+
+    return `<div class="dose-sym-block">
+      <div class="dose-sym-title">
+        <span style="color:${DOSE_COLORS[dose]||'var(--color-text-muted)'}">● ${dose}</span>
+        <span>${count} puntur${count === 1 ? 'a' : 'e'}</span>
+      </div>
+      <div class="dose-sym-pills">${pillsHtml}</div>
+    </div>`;
+  }).join('');
+
+  return `<div class="card">
+    <div class="card-title" style="font-size:var(--text-sm)">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 14l6-6m-5.5.5h.01m4.99 5h.01M19 21V5a2 2 0 0 0-2-2H7a2 2 0 0 0-2 2v16l3.5-2 3.5 2 3.5-2 3.5 2z"/></svg>
+      Sintomi per dosaggio
+    </div>
+    ${blocks}
+  </div>`;
+}
+
+// ===================== MONTHLY STATS HELPERS =====================
+function getMonthlyBreakdown() {
+  const wData = measurements.filter(m => m.weight !== null).sort((a,b) => a.date.localeCompare(b.date));
+  if (wData.length < 2) return [];
+
+  // Raggruppa per mese (YYYY-MM)
+  const byMonth = {};
+  wData.forEach(m => {
+    const key = m.date.slice(0, 7);
+    if (!byMonth[key]) byMonth[key] = [];
+    byMonth[key].push(m.weight);
+  });
+
+  const monthKeys = Object.keys(byMonth).sort();
+  const result = [];
+  for (let i = 1; i < monthKeys.length; i++) {
+    const prev = byMonth[monthKeys[i-1]];
+    const curr = byMonth[monthKeys[i]];
+    const prevLast = prev[prev.length - 1];
+    const currLast = curr[curr.length - 1];
+    const delta = prevLast - currLast; // positivo = calo
+    result.push({ month: monthKeys[i], delta });
+  }
+  return result;
+}
+
+function getAvgMonthlyLoss() {
+  const wData = measurements.filter(m => m.weight !== null).sort((a,b) => a.date.localeCompare(b.date));
+  if (wData.length < 2) return null;
+  const start = new Date(wData[0].date);
+  const end = new Date(wData[wData.length-1].date);
+  const months = (end.getFullYear() - start.getFullYear()) * 12 + (end.getMonth() - start.getMonth());
+  if (months < 1) return null;
+  const totalLoss = wData[0].weight - wData[wData.length-1].weight;
+  return (totalLoss / months).toFixed(1);
 }
 
 // ===================== STATS & EXPORT =====================
@@ -715,17 +1135,78 @@ function renderStats() { renderStatPeriod('settimanale'); }
 
 function renderStatPeriod(period) {
   const container = document.getElementById('stat-' + period);
-  const data = measurements; // Semplificato per spazio, puoi aggiungere i filtri temporali che avevi
-  
-  // Analisi Sintomi
+  const wData = measurements.filter(m => m.weight !== null);
+
+  // Calo totale
+  const totalLoss = wData.length > 1 ? (wData[0].weight - wData[wData.length-1].weight).toFixed(1) : '0';
+
+  // Sintomi
   const symCounts = {};
   injections.forEach(inj => { if(inj.symptoms) inj.symptoms.forEach(s => symCounts[s] = (symCounts[s]||0)+1); });
-  let symHtml = Object.keys(symCounts).length ? `<div style="margin-top:var(--space-4)"><div class="card-title">Frequenza Sintomi</div>${Object.entries(symCounts).sort((a,b)=>b[1]-a[1]).map(([s, c]) => `<div class="history-item" style="margin-bottom:var(--space-2)"><span>${s}</span><span class="injection-badge">${c}x</span></div>`).join('')}</div>` : '';
+  const symHtml = Object.keys(symCounts).length ? `
+    <div class="card" style="margin-top:0">
+      <div class="card-title" style="font-size:var(--text-sm)">Frequenza Sintomi</div>
+      ${Object.entries(symCounts).sort((a,b)=>b[1]-a[1]).map(([s, c]) => `<div class="history-item" style="margin-bottom:var(--space-2)"><span>${s}</span><span class="injection-badge">${c}x</span></div>`).join('')}
+    </div>` : '';
 
-  container.innerHTML = `<div class="card">
-    <div class="stat-row"><div class="stat-box"><div class="stat-box-label">Calo Max</div><div class="stat-box-value">${data.length>1?(data[data.length-1].weight - data[0].weight).toFixed(1):'0'} kg</div></div>
-    <div class="stat-box"><div class="stat-box-label">Punture</div><div class="stat-box-value" style="color:var(--color-injection)">${injections.length}</div></div></div>
-  </div>${symHtml}`;
+  // Calo medio mensile
+  const avgMonthly = getAvgMonthlyLoss();
+  const avgMonthlyHtml = avgMonthly !== null ? `
+    <div class="stat-box" style="background:var(--color-primary-soft);border-color:var(--color-primary-highlight)">
+      <div class="stat-box-label">Calo Medio / Mese</div>
+      <div class="stat-box-value">${avgMonthly > 0 ? '▼' : '▲'} ${Math.abs(avgMonthly)} kg</div>
+    </div>` : `
+    <div class="stat-box">
+      <div class="stat-box-label">Calo Medio / Mese</div>
+      <div class="stat-box-value" style="color:var(--color-text-faint)">—</div>
+    </div>`;
+
+  // Breakdown mensile
+  const months = getMonthlyBreakdown();
+  const monthlyHtml = months.length > 0 ? `
+    <div class="card">
+      <div class="card-title" style="font-size:var(--text-sm)">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg>
+        Calo ultimi mesi
+      </div>
+      ${months.slice(-6).reverse().map(m => {
+        const loss = parseFloat(m.delta);
+        return `<div class="month-row">
+          <span class="month-label">${formatMonthLabel(m.month)}</span>
+          <span class="month-delta ${loss >= 0 ? 'loss' : 'gain'}">${loss >= 0 ? '▼' : '▲'} ${Math.abs(loss).toFixed(1)} kg</span>
+        </div>`;
+      }).join('')}
+    </div>` : '';
+
+  container.innerHTML = `
+    <div class="card">
+      <div class="stat-row">
+        <div class="stat-box">
+          <div class="stat-box-label">Calo Max</div>
+          <div class="stat-box-value">${totalLoss} kg</div>
+        </div>
+        <div class="stat-box" style="background:var(--color-injection-soft);border-color:oklch(from var(--color-injection) l c h / 0.2)">
+          <div class="stat-box-label">Punture</div>
+          <div class="stat-box-value" style="color:var(--color-injection)">${injections.length}</div>
+        </div>
+      </div>
+      <div class="stat-row" style="margin-bottom:0">
+        ${avgMonthlyHtml}
+        <div class="stat-box">
+          <div class="stat-box-label">Mesi in terapia</div>
+          <div class="stat-box-value" style="color:var(--color-text-muted)">${(function(){
+            const w = measurements.filter(m=>m.weight!==null);
+            if(w.length<2) return '—';
+            const s = new Date(w[0].date), e = new Date(w[w.length-1].date);
+            const mo = (e.getFullYear()-s.getFullYear())*12+(e.getMonth()-s.getMonth());
+            return mo > 0 ? mo : '<1';
+          })()}</div>
+        </div>
+      </div>
+    </div>
+    ${monthlyHtml}
+    ${renderSymptomsPerDose()}
+    ${symHtml}`;
 }
 
 // Esportazione CSV
@@ -735,12 +1216,12 @@ function exportCSV() {
   const timeline = [];
   measurements.forEach(m => timeline.push({d: m.date, t: 'Misurazione', w: m.weight||'', c: m.chest||'', ds: '', st: '', sy: '', n: ''}));
   injections.forEach(i => timeline.push({d: i.date, t: 'Puntura', w: '', c: '', ds: i.dose||'', st: i.site||'', sy: (i.symptoms||[]).join('; '), n: i.notes||''}));
-  
+
   timeline.sort((a,b) => a.d.localeCompare(b.d)).forEach(row => {
     const esc = s => `"${String(s).replace(/"/g, '""')}"`;
     csv += `${row.d},${row.t},${row.w},${row.c},${esc(row.ds)},${esc(row.st)},${esc(row.sy)},${esc(row.n)}\n`;
   });
-  
+
   const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
   const link = document.createElement("a");
   link.href = URL.createObjectURL(blob);
