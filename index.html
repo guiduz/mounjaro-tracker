@@ -724,8 +724,22 @@ async function cloudLoad() {
 }
 async function cloudSave() {
   setSyncStatus('syncing');
-  try { const data = await gsFetch({ action: 'saveAll', measurements: JSON.stringify(measurements), injections: JSON.stringify(injections), symptomLogs: JSON.stringify(symptomLogs) }); if(data.error) throw new Error(); saveLocal(); setSyncStatus('ok'); return true; }
-  catch(e) { saveLocal(); setSyncStatus('offline'); return false; }
+  try {
+    // POST con no-cors: evita il limite di lunghezza URL dei GET
+    // Con no-cors la risposta è opaca (non leggibile), ma i dati vengono salvati
+    await fetch(SCRIPT_URL, {
+      method: 'POST',
+      mode: 'no-cors',
+      headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+      body: new URLSearchParams({
+        action: 'saveAll',
+        measurements: JSON.stringify(measurements),
+        injections:   JSON.stringify(injections),
+        symptomLogs:  JSON.stringify(symptomLogs)
+      }).toString()
+    });
+    saveLocal(); setSyncStatus('ok'); return true;
+  } catch(e) { saveLocal(); setSyncStatus('offline'); return false; }
 }
 function saveData() { saveLocal(); cloudSave(); }
 async function initData() { loadLocal(); renderHome(); updateSymDaysAfterInj(); const ok = await cloudLoad(); if(ok){ renderHome(); renderHistory(); updateSymDaysAfterInj(); } }
