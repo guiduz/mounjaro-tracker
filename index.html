@@ -712,25 +712,45 @@ function setSyncStatus(status, msg) {
   const colors = { syncing: 'var(--color-text-muted)', ok: 'var(--color-success)', error: 'var(--color-error)', offline: 'var(--color-warning)' };
   el.innerHTML = icons[status] || ''; el.style.color = colors[status] || 'var(--color-text-muted)';
 }
-async function gsFetch(params) { const resp = await fetch(SCRIPT_URL + '?' + new URLSearchParams(params).toString()); if(!resp.ok) throw new Error('HTTP '+resp.status); return await resp.json(); }
+async function gsFetch(params) {
+  // _t = cache-buster: evita che GAS/browser restituisca risposta cached
+  const p = Object.assign({ _t: Date.now() }, params);
+  const resp = await fetch(SCRIPT_URL + '?' + new URLSearchParams(p).toString());
+  if(!resp.ok) throw new Error('HTTP '+resp.status);
+  return await resp.json();
+}
 async function cloudLoad() {
   setSyncStatus('syncing');
   try {
     const data = await gsFetch({ action: 'getData' }); if(data.error) throw new Error(data.error);
-    if(data.measurements) measurements = data.measurements.map(m => ({ date: normalizeDate(m.date), weight: m.weight?parseFloat(m.weight):null, chest: m.chest?parseFloat(m.chest):null })).filter(m => m.date);
+    const rawM = data.measurements || [];
+    // Cerca riga speciale __SYMPTOMS__ (piggyback compatibile vecchio GAS)
+    const symRow = rawM.find(m => String(m.date) === '__SYMPTOMS__');
+    const cleanM = rawM.filter(m => String(m.date) !== '__SYMPTOMS__');
+    measurements = cleanM.map(m => ({ date: normalizeDate(m.date), weight: m.weight?parseFloat(m.weight):null, chest: m.chest?parseFloat(m.chest):null })).filter(m => m.date);
     if(data.injections) injections = data.injections.map(i => ({ date: normalizeDate(i.date), time: i.time||'', dose: i.dose||'', notes: i.notes||'', site: i.site||'', symptoms: i.symptoms||[] })).filter(i => i.date);
-    if(data.symptomLogs) symptomLogs = data.symptomLogs.map(s => ({ date: normalizeDate(s.date), symptoms: s.symptoms||[], note: s.note||'', endDate: s.endDate ? normalizeDate(s.endDate) : null })).filter(s => s.date);
+    // symptomLogs: prima dal campo diretto (nuovo GAS), poi da riga speciale (vecchio GAS)
+    if(data.symptomLogs) {
+      symptomLogs = data.symptomLogs.map(s => ({ date: normalizeDate(s.date), symptoms: s.symptoms||[], note: s.note||'', endDate: s.endDate ? normalizeDate(s.endDate) : null })).filter(s => s.date);
+    } else if(symRow) {
+      try { symptomLogs = JSON.parse(String(symRow.weight)); } catch(e) { symptomLogs = []; }
+    }
     saveLocal(); setSyncStatus('ok'); return true;
   } catch(e) { setSyncStatus('offline'); return false; }
 }
 async function cloudSave() {
   setSyncStatus('syncing');
   try {
+    // Piggyback: symptomLogs come riga speciale __SYMPTOMS__ nelle misurazioni
+    // Funziona con il vecchio GAS senza alcun aggiornamento
+    const measurementsToSend = [...measurements];
+    if(symptomLogs.length > 0) {
+      measurementsToSend.push({ date: '__SYMPTOMS__', weight: JSON.stringify(symptomLogs), chest: '' });
+    }
     const data = await gsFetch({
       action: 'saveAll',
-      measurements: JSON.stringify(measurements),
-      injections:   JSON.stringify(injections),
-      symptomLogs:  JSON.stringify(symptomLogs)
+      measurements: JSON.stringify(measurementsToSend),
+      injections:   JSON.stringify(injections)
     });
     if(data.error) throw new Error(data.error);
     saveLocal(); setSyncStatus('ok'); return true;
@@ -744,16 +764,28 @@ async function cloudSave() {
 async function testGASConnection() {
   showToast('🔌 Test in corso…');
   try {
+    // Step 1: verifica versione script tramite action sconosciuta
+    // Vecchio GAS → { error: 'Azione non riconosciuta' } (senza nome action)
+    // Nuovo GAS → { error: 'Azione non riconosciuta: _ping' } (con nome action)
+    const ping = await gsFetch({ action: '_ping' });
+    const isNewScript = ping.error && ping.error.includes('_ping');
+
+    // Step 2: leggi dati reali
     const data = await gsFetch({ action: 'getData' });
-    if(data.error) { showToast('❌ GAS risponde ma con errore: ' + data.error); return; }
+    if(data.error) { showToast('❌ GAS errore getData: ' + data.error); return; }
+
     const m = (data.measurements||[]).length;
     const i = (data.injections||[]).length;
     const s = (data.symptomLogs||[]).length;
-    showToast(`✅ GAS OK — ${m} misur., ${i} punture, ${s} log sintomi`);
-    // Verifica se il GAS conosce i symptomLogs
-    if(!('symptomLogs' in data)) showToast('⚠️ Script GAS vecchio: aggiorna e rideploya!');
+
+    if(isNewScript) {
+      showToast(`✅ Script AGGIORNATO — ${m} misur., ${i} punture, ${s} log sintomi`);
+    } else {
+      showToast(`⚠️ Script VECCHIO ancora attivo! (${m} misur., ${i} punture)`);
+      showToast('👉 GAS: incolla nuovo codice → Salva → Distribuisci > Nuova versione');
+    }
   } catch(e) {
-    showToast('❌ Impossibile raggiungere il GAS. Controlla la connessione.');
+    showToast('❌ GAS non raggiungibile: ' + (e.message||'errore rete'));
   }
 }
 function saveData() { saveLocal(); cloudSave(); }
