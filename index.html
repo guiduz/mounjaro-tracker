@@ -273,6 +273,39 @@
     /* optgroup styling */
     optgroup { font-weight: 700; color: var(--color-text-muted); }
 
+    /* Symptom legend dots */
+    .sym-legend-dot { width: 9px; height: 9px; border-radius: 50%; flex-shrink: 0; }
+
+    /* === RESPONSIVE === */
+    @media (min-width: 640px) {
+      .view { max-width: 760px; padding: var(--space-6); }
+      .chart-wrap { height: 240px; }
+      .chart-wrap-tall { height: 320px; }
+      .card { padding: var(--space-5); }
+      .kpi-grid { gap: var(--space-4); }
+    }
+
+    @media (min-width: 960px) {
+      .view { max-width: 1040px; }
+      .home-layout {
+        display: grid;
+        grid-template-columns: 290px 1fr;
+        gap: var(--space-5);
+        align-items: start;
+      }
+      /* Su desktop le card della sidebar non hanno margin-bottom eccessivo */
+      .home-sidebar .next-injection-card { margin-bottom: var(--space-3); }
+      .home-sidebar #dosePhaseCard .dose-phase-card { margin-bottom: 0; }
+      .chart-wrap-tall { height: 360px; }
+      .chart-wrap { height: 260px; }
+      .stat-row { grid-template-columns: repeat(4, 1fr); }
+    }
+
+    @media (min-width: 1280px) {
+      .view { max-width: 1200px; }
+      .home-layout { grid-template-columns: 320px 1fr; }
+    }
+
     /* EXPORT BUTTON */
     .export-btn-container { text-align: center; margin-bottom: var(--space-4); }
 
@@ -318,35 +351,43 @@
 
 <main>
   <div class="view active" id="view-home">
-    <div id="nextInjectionCard"></div>
+    <div class="home-layout">
 
-    <div class="kpi-grid" id="kpiGrid"></div>
+      <!-- Colonna sinistra: KPI, prossima puntura, fase dose -->
+      <div class="home-sidebar">
+        <div id="nextInjectionCard"></div>
+        <div class="kpi-grid" id="kpiGrid"></div>
+        <div id="dosePhaseCard"></div>
+      </div>
 
-    <div id="dosePhaseCard"></div>
+      <!-- Colonna destra: grafici -->
+      <div class="home-main">
+        <!-- Andamento Peso -->
+        <div class="card" id="weightChartCard">
+          <div class="card-title">
+            <svg class="card-title-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg> Andamento Peso
+          </div>
+          <div class="chart-zoom-row">
+            <span class="zoom-hint">🔍 Pizzica/scorri per zoomare</span>
+            <button class="reset-zoom-btn" id="resetZoomBtn" onclick="resetWeightZoom()">Reset zoom</button>
+          </div>
+          <div class="chart-wrap-tall"><canvas id="weightChart"></canvas></div>
+          <div class="dose-legend" id="doseLegend"></div>
+        </div>
 
-    <!-- Andamento Peso — PRIMO -->
-    <div class="card" id="weightChartCard">
-      <div class="card-title">
-        <svg class="card-title-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg> Andamento Peso
+        <!-- Curva Efficacia -->
+        <div class="card" id="pharmaChartCard">
+          <div class="card-title">
+            <svg class="card-title-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="color:var(--color-injection)"><path d="M2 12h4l2-9 5 18 2-9h7"/></svg>
+            Curva Efficacia
+          </div>
+          <p style="font-size:var(--text-xs); color:var(--color-text-muted); margin-top:-8px; margin-bottom:12px;">Stima del livello di farmaco nei 7 giorni.</p>
+          <div class="chart-wrap">
+            <canvas id="pharmaChart"></canvas>
+          </div>
+        </div>
       </div>
-      <div class="chart-zoom-row">
-        <span class="zoom-hint">🔍 Pizzica/scorri per zoomare</span>
-        <button class="reset-zoom-btn" id="resetZoomBtn" onclick="resetWeightZoom()">Reset zoom</button>
-      </div>
-      <div class="chart-wrap-tall"><canvas id="weightChart"></canvas></div>
-      <div class="dose-legend" id="doseLegend"></div>
-    </div>
 
-    <!-- Curva Efficacia — SECONDO -->
-    <div class="card" id="pharmaChartCard">
-      <div class="card-title">
-        <svg class="card-title-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="color:var(--color-injection)"><path d="M2 12h4l2-9 5 18 2-9h7"/></svg>
-        Curva Efficacia
-      </div>
-      <p style="font-size:var(--text-xs); color:var(--color-text-muted); margin-top:-8px; margin-bottom:12px;">Stima del livello di farmaco nei 7 giorni.</p>
-      <div class="chart-wrap">
-        <canvas id="pharmaChart"></canvas>
-      </div>
     </div>
   </div>
 
@@ -419,6 +460,7 @@
             <button type="button" class="chip" data-val="Inappetenza">Inappetenza</button>
             <button type="button" class="chip" data-val="Mal di testa">Mal di testa</button>
             <button type="button" class="chip" data-val="Crampi">Crampi</button>
+            <button type="button" class="chip" data-val="Diarrea">Diarrea</button>
             <button type="button" class="chip" data-val="Nessuno">Nessuno</button>
           </div>
         </div>
@@ -427,6 +469,48 @@
           <input type="text" id="injNotes" class="form-input" placeholder="es. tutto liscio">
         </div>
         <button type="submit" class="btn btn-injection btn-full"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 5v14M5 12h14"/></svg> Salva puntura</button>
+      </form>
+    </div>
+    <div class="card">
+      <div class="card-title">
+        <svg class="card-title-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="color:#ef4444"><path d="M9 14l6-6m-5.5.5h.01m4.99 5h.01M19 21V5a2 2 0 0 0-2-2H7a2 2 0 0 0-2 2v16l3.5-2 3.5 2 3.5-2 3.5 2z"/></svg>
+        Traccia sintomi di oggi
+      </div>
+      <p style="font-size:var(--text-xs);color:var(--color-text-muted);margin-top:-8px;margin-bottom:12px;">Registra come ti senti oggi, indipendentemente dalla puntura.</p>
+      <form id="symptomLogForm">
+        <div class="form-group">
+          <label class="form-label" for="symLogDate">Data</label>
+          <input type="date" id="symLogDate" class="form-input" required>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Sintomi</label>
+          <div class="chip-group" id="symLogChips">
+            <button type="button" class="chip" data-val="Nausea">Nausea</button>
+            <button type="button" class="chip" data-val="Stanchezza">Stanchezza</button>
+            <button type="button" class="chip" data-val="Inappetenza">Inappetenza</button>
+            <button type="button" class="chip" data-val="Mal di testa">Mal di testa</button>
+            <button type="button" class="chip" data-val="Crampi">Crampi</button>
+            <button type="button" class="chip" data-val="Diarrea">Diarrea</button>
+          </div>
+        </div>
+        <div class="form-group">
+          <div style="font-size:var(--text-xs);font-weight:600;color:var(--color-text-muted);text-transform:uppercase;letter-spacing:0.05em;margin-bottom:6px;">Dall'ultima puntura</div>
+          <div id="symDaysAfterInj" style="font-size:var(--text-sm);color:var(--color-text-muted);background:var(--color-surface-2);border-radius:var(--radius-md);padding:var(--space-2) var(--space-3);border:1px solid var(--color-border);">—</div>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label class="form-label" for="symLogNote">Nota (opzionale)</label>
+            <input type="text" id="symLogNote" class="form-input" placeholder="es. peggio al mattino">
+          </div>
+          <div class="form-group">
+            <label class="form-label" for="symLogEndDate">Fine sintomo (opzionale)</label>
+            <input type="date" id="symLogEndDate" class="form-input">
+          </div>
+        </div>
+        <button type="submit" class="btn btn-full" style="background:var(--color-error-soft);color:var(--color-error);border:1.5px solid oklch(from var(--color-error) l c h / 0.25);font-weight:700">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 5v14M5 12h14"/></svg>
+          Salva sintomi
+        </button>
       </form>
     </div>
   </div>
@@ -468,6 +552,44 @@
   <button class="nav-item" onclick="switchView('history', this)"><svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 8v4l3 3m6-3a9 9 0 1 1-18 0 9 9 0 0 1 18 0z"/></svg>Storico</button>
   <button class="nav-item" onclick="switchView('stats', this)"><svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>Statistiche</button>
 </nav>
+
+<div class="modal-overlay" id="editSymptomModal">
+  <div class="modal">
+    <div class="modal-title" style="font-size:var(--text-base);font-weight:700;margin-bottom:var(--space-4)">Modifica sintomi</div>
+    <input type="hidden" id="editSymDate">
+    <div class="form-group">
+      <div style="font-size:var(--text-xs);font-weight:600;color:var(--color-text-muted);text-transform:uppercase;letter-spacing:0.05em;margin-bottom:4px">Data</div>
+      <div id="editSymDateDisplay" style="font-size:var(--text-base);font-weight:700;color:var(--color-text)"></div>
+      <div id="editSymDaysInfo" style="font-size:var(--text-xs);color:var(--color-text-muted);margin-top:2px"></div>
+    </div>
+    <div class="form-group">
+      <label class="form-label">Sintomi</label>
+      <div class="chip-group" id="editSymChips">
+        <button type="button" class="chip" data-val="Nausea">Nausea</button>
+        <button type="button" class="chip" data-val="Stanchezza">Stanchezza</button>
+        <button type="button" class="chip" data-val="Inappetenza">Inappetenza</button>
+        <button type="button" class="chip" data-val="Mal di testa">Mal di testa</button>
+        <button type="button" class="chip" data-val="Crampi">Crampi</button>
+        <button type="button" class="chip" data-val="Diarrea">Diarrea</button>
+      </div>
+    </div>
+    <div class="form-row">
+      <div class="form-group">
+        <label class="form-label" for="editSymNote">Nota</label>
+        <input type="text" id="editSymNote" class="form-input" placeholder="es. peggio al mattino">
+      </div>
+      <div class="form-group">
+        <label class="form-label" for="editSymEndDate">Fine sintomo</label>
+        <input type="date" id="editSymEndDate" class="form-input">
+      </div>
+    </div>
+    <div style="display:flex;gap:var(--space-2);margin-top:var(--space-2)">
+      <button class="btn btn-ghost" style="flex:1" onclick="closeModal('editSymptomModal')">Annulla</button>
+      <button class="btn" style="flex:1;background:var(--color-error-soft);color:var(--color-error);border:1px solid oklch(from var(--color-error) l c h / 0.25)" onclick="deleteSymptomLog()">Elimina</button>
+      <button class="btn btn-primary" style="flex:2" onclick="saveSymptomEdit()">Salva</button>
+    </div>
+  </div>
+</div>
 
 <div class="modal-overlay" id="editMeasModal">
   <div class="modal">
@@ -535,8 +657,8 @@
 <script>
 // ===================== STATE =====================
 const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbwpTavvUPYxNAbgWFbgP-nCjuGtKfLVAggKcfojMU2f7aDLTZ8qW21cwnTBYXoqfy4m9Q/exec';
-let measurements = []; let injections = [];
-let weightChartInst = null; let chestChartInst = null; let pharmaChartInst = null;
+let measurements = []; let injections = []; let symptomLogs = [];
+let weightChartInst = null; let chestChartInst = null; let pharmaChartInst = null; let symptomChartInst = null;
 let syncStatus = 'idle';
 const ROTATION_SITES = [
   'Add. Sup. Sx', 'Add. Sup. Centro', 'Add. Sup. Dx',
@@ -545,6 +667,17 @@ const ROTATION_SITES = [
   'Braccio Dx', 'Braccio Sx',
   'Anca Dx', 'Anca Sx'
 ];
+
+// Sintomi disponibili e relativi colori
+const ALL_SYMPTOMS = ['Nausea', 'Stanchezza', 'Inappetenza', 'Mal di testa', 'Crampi', 'Diarrea'];
+const SYMPTOM_COLORS = {
+  'Nausea':       '#ef4444',
+  'Stanchezza':   '#f59e0b',
+  'Inappetenza':  '#8b5cf6',
+  'Mal di testa': '#ec4899',
+  'Crampi':       '#3b82f6',
+  'Diarrea':      '#10b981',
+};
 
 // Colori per dosaggio (usati nel grafico peso e nella legenda)
 const DOSE_COLORS = {
@@ -564,8 +697,8 @@ function normalizeDate(val) {
   if(!isNaN(d.getTime())) return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
   return null;
 }
-function saveLocal() { try { localStorage.setItem('mjt_measurements', JSON.stringify(measurements)); localStorage.setItem('mjt_injections', JSON.stringify(injections)); } catch(e){} }
-function loadLocal() { try { const m = localStorage.getItem('mjt_measurements'); const i = localStorage.getItem('mjt_injections'); if(m) measurements = JSON.parse(m); if(i) injections = JSON.parse(i); } catch(e){} }
+function saveLocal() { try { localStorage.setItem('mjt_measurements', JSON.stringify(measurements)); localStorage.setItem('mjt_injections', JSON.stringify(injections)); localStorage.setItem('mjt_symptomLogs', JSON.stringify(symptomLogs)); } catch(e){} }
+function loadLocal() { try { const m = localStorage.getItem('mjt_measurements'); const i = localStorage.getItem('mjt_injections'); const s = localStorage.getItem('mjt_symptomLogs'); if(m) measurements = JSON.parse(m); if(i) injections = JSON.parse(i); if(s) symptomLogs = JSON.parse(s); } catch(e){} }
 
 function setSyncStatus(status, msg) {
   const el = document.getElementById('syncIndicator'); if(!el) return;
@@ -585,16 +718,17 @@ async function cloudLoad() {
     const data = await gsFetch({ action: 'getData' }); if(data.error) throw new Error(data.error);
     if(data.measurements) measurements = data.measurements.map(m => ({ date: normalizeDate(m.date), weight: m.weight?parseFloat(m.weight):null, chest: m.chest?parseFloat(m.chest):null })).filter(m => m.date);
     if(data.injections) injections = data.injections.map(i => ({ date: normalizeDate(i.date), time: i.time||'', dose: i.dose||'', notes: i.notes||'', site: i.site||'', symptoms: i.symptoms||[] })).filter(i => i.date);
+    if(data.symptomLogs) symptomLogs = data.symptomLogs.map(s => ({ date: normalizeDate(s.date), symptoms: s.symptoms||[], note: s.note||'', endDate: s.endDate ? normalizeDate(s.endDate) : null })).filter(s => s.date);
     saveLocal(); setSyncStatus('ok'); return true;
   } catch(e) { setSyncStatus('offline'); return false; }
 }
 async function cloudSave() {
   setSyncStatus('syncing');
-  try { const data = await gsFetch({ action: 'saveAll', measurements: JSON.stringify(measurements), injections: JSON.stringify(injections) }); if(data.error) throw new Error(); saveLocal(); setSyncStatus('ok'); return true; }
+  try { const data = await gsFetch({ action: 'saveAll', measurements: JSON.stringify(measurements), injections: JSON.stringify(injections), symptomLogs: JSON.stringify(symptomLogs) }); if(data.error) throw new Error(); saveLocal(); setSyncStatus('ok'); return true; }
   catch(e) { saveLocal(); setSyncStatus('offline'); return false; }
 }
 function saveData() { saveLocal(); cloudSave(); }
-async function initData() { loadLocal(); renderHome(); const ok = await cloudLoad(); if(ok){ renderHome(); renderHistory(); } }
+async function initData() { loadLocal(); renderHome(); updateSymDaysAfterInj(); const ok = await cloudLoad(); if(ok){ renderHome(); renderHistory(); updateSymDaysAfterInj(); } }
 
 // ===================== THEME =====================
 (function(){
@@ -645,6 +779,10 @@ function switchView(view, btn) {
     Array.from(document.getElementById('injDose').options).forEach(opt => { if(opt.value.startsWith(sugDose)) document.getElementById('injDose').value = opt.value; });
     document.getElementById('injSite').value = getSuggestedSite();
     document.querySelectorAll('#symptomChips .chip').forEach(c => c.classList.remove('active'));
+    document.getElementById('symLogDate').value = todayStr();
+    document.getElementById('symLogEndDate').value = '';
+    document.querySelectorAll('#symLogChips .chip').forEach(c => c.classList.remove('active'));
+    updateSymDaysAfterInj();
   }
 }
 
@@ -658,6 +796,27 @@ const todayStr = () => new Date().toISOString().slice(0, 10);
 const formatDate = d => { const p = d.split('-'); return `${p[2]}/${p[1]}/${p[0]}`; };
 const addDays = (d, n) => { const x = new Date(d); x.setDate(x.getDate()+n); return x.toISOString().slice(0, 10); };
 const diffDays = (a, b) => Math.round((new Date(b) - new Date(a)) / 86400000);
+const DAY_NAMES_IT = ['Dom', 'Lun', 'Mar', 'Mer', 'Gio', 'Ven', 'Sab'];
+const formatDateWithDay = d => { const dt = new Date(d + 'T12:00:00'); return `${DAY_NAMES_IT[dt.getDay()]} ${formatDate(d)}`; };
+
+function getDaysAfterLastInj(dateStr) {
+  if (!injections.length) return null;
+  const prev = [...injections].filter(i => i.date <= dateStr).sort((a, b) => b.date.localeCompare(a.date));
+  if (!prev.length) return null;
+  return { days: diffDays(prev[0].date, dateStr), injDate: prev[0].date };
+}
+
+function updateSymDaysAfterInj() {
+  const el = document.getElementById('symDaysAfterInj');
+  if (!el) return;
+  const date = document.getElementById('symLogDate').value;
+  if (!date) { el.textContent = '—'; return; }
+  const res = getDaysAfterLastInj(date);
+  if (!res) { el.textContent = 'Nessuna puntura precedente registrata'; return; }
+  const { days, injDate } = res;
+  if (days === 0) el.textContent = `Stesso giorno della puntura (${formatDate(injDate)})`;
+  else el.textContent = `${days} giorn${days === 1 ? 'o' : 'i'} dopo la puntura del ${formatDateWithDay(injDate)}`;
+}
 
 function formatMonthLabel(yyyymm) {
   const [y, m] = yyyymm.split('-');
@@ -682,6 +841,33 @@ document.querySelectorAll('#symptomChips .chip').forEach(chip => {
   chip.addEventListener('click', () => chip.classList.toggle('active'));
 });
 
+document.querySelectorAll('#symLogChips .chip').forEach(chip => {
+  chip.addEventListener('click', () => chip.classList.toggle('active'));
+});
+
+document.getElementById('symLogDate').value = todayStr();
+document.getElementById('symLogDate').addEventListener('change', updateSymDaysAfterInj);
+
+document.getElementById('symptomLogForm').addEventListener('submit', e => {
+  e.preventDefault();
+  const date = document.getElementById('symLogDate').value;
+  const symptoms = Array.from(document.querySelectorAll('#symLogChips .chip.active')).map(b => b.dataset.val);
+  const note = document.getElementById('symLogNote').value;
+  if (symptoms.length === 0) return showToast('⚠️ Seleziona almeno un sintomo');
+  const endDate = document.getElementById('symLogEndDate').value || null;
+  symptomLogs = symptomLogs.filter(s => s.date !== date);
+  symptomLogs.push({ date, symptoms, note, endDate });
+  symptomLogs.sort((a, b) => a.date.localeCompare(b.date));
+  saveData();
+  document.querySelectorAll('#symLogChips .chip').forEach(c => c.classList.remove('active'));
+  document.getElementById('symLogNote').value = '';
+  document.getElementById('symLogEndDate').value = '';
+  document.getElementById('symLogDate').value = todayStr();
+  updateSymDaysAfterInj();
+  showToast('📋 Sintomi registrati!');
+  renderHome();
+});
+
 document.getElementById('injectionForm').addEventListener('submit', e => {
   e.preventDefault();
   const date = document.getElementById('injDate').value;
@@ -699,6 +885,46 @@ document.getElementById('injectionForm').addEventListener('submit', e => {
 
 // ===================== EDIT =====================
 function closeModal(id) { document.getElementById(id).classList.remove('open'); }
+
+// ===================== SYMPTOM EDIT =====================
+document.getElementById('editSymChips').addEventListener('click', e => {
+  const chip = e.target.closest('.chip');
+  if (chip) chip.classList.toggle('active');
+});
+
+function openSymptomEditModal(dateStr) {
+  const log = symptomLogs.find(s => s.date === dateStr);
+  if (!log) return;
+  document.getElementById('editSymDate').value = dateStr;
+  document.getElementById('editSymDateDisplay').textContent = formatDateWithDay(dateStr);
+  const res = getDaysAfterLastInj(dateStr);
+  document.getElementById('editSymDaysInfo').textContent = res
+    ? (res.days === 0 ? 'Stesso giorno della puntura' : `${res.days}g dopo la puntura del ${formatDateWithDay(res.injDate)}`)
+    : '';
+  document.querySelectorAll('#editSymChips .chip').forEach(c =>
+    c.classList.toggle('active', log.symptoms.includes(c.dataset.val)));
+  document.getElementById('editSymNote').value = log.note || '';
+  document.getElementById('editSymEndDate').value = log.endDate || '';
+  document.getElementById('editSymptomModal').classList.add('open');
+}
+
+function saveSymptomEdit() {
+  const dateStr = document.getElementById('editSymDate').value;
+  const symptoms = Array.from(document.querySelectorAll('#editSymChips .chip.active')).map(c => c.dataset.val);
+  if (symptoms.length === 0) return showToast('⚠️ Seleziona almeno un sintomo');
+  const note = document.getElementById('editSymNote').value;
+  const endDate = document.getElementById('editSymEndDate').value || null;
+  symptomLogs = symptomLogs.filter(s => s.date !== dateStr);
+  symptomLogs.push({ date: dateStr, symptoms, note, endDate });
+  symptomLogs.sort((a, b) => a.date.localeCompare(b.date));
+  saveData(); closeModal('editSymptomModal'); renderHome(); showToast('✅ Sintomi aggiornati!');
+}
+
+function deleteSymptomLog() {
+  const dateStr = document.getElementById('editSymDate').value;
+  symptomLogs = symptomLogs.filter(s => s.date !== dateStr);
+  saveData(); closeModal('editSymptomModal'); renderHome(); showToast('🗑️ Sintomi eliminati');
+}
 
 function editMeasurement(idx) {
   const m = measurements[idx]; document.getElementById('editMeasIdx').value = idx; document.getElementById('editMeasDate').value = m.date;
@@ -785,6 +1011,138 @@ function renderDosePhase() {
         <span>${isMax ? '✓ Max' : pct + '%'}</span>
       </div>
     </div>`;
+}
+
+// === GRAFICO DIARIO SINTOMI ===
+function renderSymptomChart() {
+  const card = document.getElementById('symptomChartCard');
+  const canvas = document.getElementById('symptomChart');
+  if (symptomChartInst) { symptomChartInst.destroy(); symptomChartInst = null; }
+
+  // Raccoglie tutti gli eventi sintomo: da log giornalieri + da punture
+  const events = [];
+  symptomLogs.forEach(log => {
+    log.symptoms.forEach(s => events.push({ date: log.date, symptom: s, source: 'log' }));
+  });
+  injections.forEach(inj => {
+    if (inj.symptoms) inj.symptoms.filter(s => s !== 'Nessuno' && ALL_SYMPTOMS.includes(s))
+      .forEach(s => events.push({ date: inj.date, symptom: s, source: 'inj' }));
+  });
+
+  if (events.length === 0 && injections.length === 0) { card.style.display = 'none'; return; }
+  card.style.display = 'block';
+
+  const isDark = document.documentElement.getAttribute('data-theme') === 'dark';
+
+  // Sintomi usati (solo quelli che compaiono)
+  const usedSymptoms = ALL_SYMPTOMS.filter(s => events.some(e => e.symptom === s));
+
+  // Un dataset per sintomo (y = indice del sintomo), shape diversa per fonte
+  const symDatasets = usedSymptoms.map(sym => {
+    const symIdx = usedSymptoms.indexOf(sym);
+    const pts = events.filter(e => e.symptom === sym);
+    return {
+      type: 'scatter',
+      label: sym,
+      data: pts.map(e => ({
+        x: new Date(e.date).getTime(),
+        y: symIdx,
+        source: e.source,
+        dateStr: e.date
+      })),
+      backgroundColor: SYMPTOM_COLORS[sym] || '#888',
+      borderColor: SYMPTOM_COLORS[sym] || '#888',
+      pointStyle: pts.map(e => e.source === 'log' ? 'circle' : 'rectRot'),
+      pointRadius: 8,
+      pointHoverRadius: 11,
+      order: 1
+    };
+  });
+
+  // Dataset punture (asse y = -1, triangoli colorati per dose)
+  const injDataset = injections.length > 0 ? [{
+    type: 'scatter',
+    label: 'Punture',
+    data: injections.map(inj => ({
+      x: new Date(inj.date).getTime(),
+      y: -1,
+      dose: inj.dose,
+      dateStr: inj.date
+    })),
+    backgroundColor: injections.map(inj => DOSE_COLORS[inj.dose] || '#888'),
+    borderColor: injections.map(inj => DOSE_COLORS[inj.dose] || '#888'),
+    pointStyle: 'triangle',
+    pointRadius: 9,
+    pointHoverRadius: 12,
+    order: 0
+  }] : [];
+
+  // Range X
+  const allTs = [
+    ...events.map(e => new Date(e.date).getTime()),
+    ...injections.map(i => new Date(i.date).getTime())
+  ];
+  const xMin = Math.min(...allTs);
+  const xMax = Math.max(...allTs);
+  const xPad = Math.max((xMax - xMin) * 0.04, 86400000 * 3);
+
+  symptomChartInst = new Chart(canvas.getContext('2d'), {
+    data: { datasets: [...symDatasets, ...injDataset] },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      interaction: { mode: 'nearest', intersect: true },
+      plugins: {
+        legend: { display: false },
+        tooltip: {
+          callbacks: {
+            title: (items) => formatDate(items[0].raw.dateStr || new Date(items[0].parsed.x).toISOString().slice(0,10)),
+            label: (item) => {
+              const raw = item.raw;
+              if (raw.dose) return `💉 ${raw.dose}`;
+              return `${raw.source === 'log' ? '●' : '◆'} ${item.dataset.label}`;
+            }
+          }
+        },
+        zoom: {
+          zoom: { wheel: { enabled: true }, pinch: { enabled: true }, mode: 'x' },
+          pan: { enabled: true, mode: 'x' },
+          limits: { x: { min: xMin - xPad, max: xMax + xPad } }
+        }
+      },
+      scales: {
+        x: {
+          type: 'linear',
+          min: xMin - xPad,
+          max: xMax + xPad,
+          ticks: {
+            maxTicksLimit: 6,
+            maxRotation: 0,
+            callback: val => { const d = new Date(val); return `${d.getDate()}/${d.getMonth()+1}`; }
+          },
+          grid: { display: false }
+        },
+        y: {
+          min: -1.6,
+          max: usedSymptoms.length - 0.4,
+          ticks: {
+            stepSize: 1,
+            callback: val => {
+              if (val === -1) return '💉';
+              return usedSymptoms[val] || '';
+            }
+          },
+          grid: { color: isDark ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.04)' }
+        }
+      }
+    }
+  });
+
+  // Legenda sintomi usati
+  const legendEl = document.getElementById('symptomLegend');
+  legendEl.innerHTML = usedSymptoms.map(s =>
+    `<div class="dose-legend-item"><span class="sym-legend-dot" style="background:${SYMPTOM_COLORS[s]}"></span>${s}</div>`
+  ).join('');
 }
 
 // ===================== HOME VIEW =====================
@@ -886,8 +1244,9 @@ function renderWeightChart() {
   const maxW = Math.max(...weights);
   const range = maxW - minW || 1;
 
-  // Posizione Y delle punture: sotto il minimo del peso
-  const injY = minW - Math.max(range * 0.18, 0.8);
+  // Posizioni Y nella fascia inferiore del grafico
+  const injY = minW - Math.max(range * 0.22, 1.0);   // punture (triangoli)
+  const symY = injY + Math.max(range * 0.09, 0.4);   // sintomi (cerchi), sopra le punture
 
   // Dataset peso (linea)
   const weightDataset = {
@@ -901,11 +1260,70 @@ function renderWeightChart() {
     fill: true,
     pointRadius: 4,
     pointHoverRadius: 6,
-    order: 1,
+    order: 2,
     yAxisID: 'y'
   };
 
-  // Dataset punture (scatter, triangoli colorati per dosaggio)
+  // Aggrega sintomi per data (da log giornalieri + da punture)
+  const symptomsByDate = {};
+  symptomLogs.forEach(log => {
+    if (!symptomsByDate[log.date]) symptomsByDate[log.date] = [];
+    log.symptoms.forEach(s => { if (!symptomsByDate[log.date].includes(s)) symptomsByDate[log.date].push(s); });
+  });
+  injections.forEach(inj => {
+    if (inj.symptoms) inj.symptoms.filter(s => s !== 'Nessuno').forEach(s => {
+      if (!symptomsByDate[inj.date]) symptomsByDate[inj.date] = [];
+      if (!symptomsByDate[inj.date].includes(s)) symptomsByDate[inj.date].push(s);
+    });
+  });
+
+  // Dataset sintomi (cerchi arancioni sopra le punture)
+  // Mappa endDate per data (solo da symptomLogs)
+  const endDateByDate = {};
+  symptomLogs.forEach(log => { if (log.endDate) endDateByDate[log.date] = log.endDate; });
+
+  // Linee orizzontali durata sintomo (inizio → fine)
+  const durationDatasets = symptomLogs
+    .filter(log => log.endDate && log.date <= log.endDate)
+    .map(log => ({
+      type: 'line',
+      label: `_dur_${log.date}`,
+      data: [
+        { x: new Date(log.date).getTime(), y: symY },
+        { x: new Date(log.endDate).getTime(), y: symY }
+      ],
+      borderColor: isDark ? 'rgba(251,146,60,0.7)' : 'rgba(249,115,22,0.6)',
+      borderWidth: 3,
+      borderCapStyle: 'round',
+      pointRadius: 0,
+      pointHoverRadius: 0,
+      tension: 0,
+      fill: false,
+      order: 3,
+      yAxisID: 'y'
+    }));
+
+  const symDates = Object.keys(symptomsByDate);
+  const symDataset = symDates.length > 0 ? [{
+    type: 'scatter',
+    label: 'Sintomi',
+    data: symDates.map(date => ({
+      x: new Date(date).getTime(),
+      y: symY,
+      symptoms: symptomsByDate[date],
+      dateStr: date,
+      endDate: endDateByDate[date] || null
+    })),
+    backgroundColor: isDark ? '#fb923c' : '#f97316',
+    borderColor: isDark ? '#fb923c' : '#f97316',
+    pointStyle: 'circle',
+    pointRadius: 5,
+    pointHoverRadius: 8,
+    order: 1,
+    yAxisID: 'y'
+  }] : [];
+
+  // Dataset punture (triangoli colorati per dosaggio)
   const injDatasets = [];
   if (injections.length > 0) {
     injDatasets.push({
@@ -938,26 +1356,61 @@ function renderWeightChart() {
   const xPad = (xMax - xMin) * 0.05 || 86400000;
 
   weightChartInst = new Chart(wCtx, {
-    data: { datasets: [weightDataset, ...injDatasets] },
+    data: { datasets: [weightDataset, ...durationDatasets, ...symDataset, ...injDatasets] },
     options: {
       responsive: true,
       maintainAspectRatio: false,
       interaction: { mode: 'nearest', axis: 'x', intersect: false },
+      onClick(event, elements, chart) {
+        if (!elements.length) return;
+        const el = elements[0];
+        const raw = chart.data.datasets[el.datasetIndex].data[el.index];
+        if (!raw || !raw.symptoms) return; // solo cerchi sintomo
+        // Zoom sulla settimana del sintomo
+        const ts = raw.x;
+        const day = 86400000;
+        chart.options.scales.x.min = ts - 3 * day;
+        chart.options.scales.x.max = ts + 10 * day;
+        chart.update('none');
+        const btn = document.getElementById('resetZoomBtn');
+        if (btn) btn.style.display = 'inline-flex';
+        // Apre modal solo se il log è modificabile (da symptomLogs, non da puntura)
+        if (symptomLogs.find(s => s.date === raw.dateStr)) openSymptomEditModal(raw.dateStr);
+      },
+      onHover(event, elements) {
+        const canvas = event.native?.target;
+        if (!canvas) return;
+        const hasSym = elements.some(el => {
+          const raw = weightChartInst?.data.datasets[el.datasetIndex]?.data[el.index];
+          return raw?.symptoms;
+        });
+        canvas.style.cursor = hasSym ? 'pointer' : 'default';
+      },
       plugins: {
         legend: { display: false },
         tooltip: {
+          filter: item => !item.dataset.label?.startsWith('_dur_'),
           callbacks: {
             title(items) {
               if (!items.length) return '';
               const raw = items[0].raw;
-              const dateStr = raw.injDate || new Date(items[0].parsed.x).toISOString().slice(0,10);
-              return formatDate(dateStr);
+              const dateStr = raw.injDate || raw.dateStr || new Date(items[0].parsed.x).toISOString().slice(0,10);
+              return formatDateWithDay(dateStr);
             },
             label(item) {
               const raw = item.raw;
-              if (item.datasetIndex > 0 && raw.dose) {
-                return `💉 ${raw.dose}${raw.site ? ' · ' + raw.site : ''}`;
+              if (raw.symptoms) {
+                const lines = [`📋 ${raw.symptoms.join(', ')}`];
+                const res = getDaysAfterLastInj(raw.dateStr);
+                if (res) {
+                  lines.push(res.days === 0
+                    ? `⏱ Stesso giorno della puntura`
+                    : `⏱ ${res.days}g dopo puntura del ${formatDate(res.injDate)}`);
+                }
+                if (raw.endDate) lines.push(`→ fine ${formatDateWithDay(raw.endDate)}`);
+                return lines;
               }
+              if (raw.dose) return `💉 ${raw.dose}${raw.site ? ' · ' + raw.site : ''}`;
               return `⚖️ ${item.parsed.y.toFixed(1)} kg`;
             }
           }
@@ -1004,8 +1457,8 @@ function renderWeightChart() {
           min: injY - 0.3,
           ticks: {
             callback(v) {
-              // Nascondi le tick della zona punture
-              if (v < minW - 0.5) return '';
+              // Nascondi tick della zona punture/sintomi
+              if (v < minW - 0.4) return '';
               return v.toFixed(1) + ' kg';
             }
           },
