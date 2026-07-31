@@ -9,14 +9,22 @@ const SHEET_MEAS = 'Misurazioni';
 const SHEET_INJ  = 'Punture';
 const SHEET_SYM  = 'Sintomi';
 
+// ⚠️ TOKEN SEGRETO — deve essere IDENTICO a quello in index.html
+// Se vuoi cambiarlo, cambialo in entrambi i file.
+const AUTH_TOKEN = 'HFdNSj67pK4TE0ZnhMKredSfeCTw';
+
 // ── GET: lettura e scrittura (URL-based) ──────────────
 function doGet(e) {
   var result;
   try {
-    var action = e.parameter.action;
-    if      (action === 'getData')  result = getData();
-    else if (action === 'saveAll')  result = saveAll(e.parameter);
-    else result = { error: 'Azione non riconosciuta: ' + action };
+    if (e.parameter.token !== AUTH_TOKEN) {
+      result = { error: 'Non autorizzato' };
+    } else {
+      var action = e.parameter.action;
+      if      (action === 'getData')  result = getData();
+      else if (action === 'saveAll')  result = saveAll(e.parameter);
+      else result = { error: 'Azione non riconosciuta: ' + action };
+    }
   } catch(err) {
     result = { error: err.toString() };
   }
@@ -29,9 +37,13 @@ function doGet(e) {
 function doPost(e) {
   var result;
   try {
-    var action = e.parameter.action;
-    if (action === 'saveAll') result = saveAll(e.parameter);
-    else result = { error: 'Azione non riconosciuta: ' + action };
+    if (e.parameter.token !== AUTH_TOKEN) {
+      result = { error: 'Non autorizzato' };
+    } else {
+      var action = e.parameter.action;
+      if (action === 'saveAll') result = saveAll(e.parameter);
+      else result = { error: 'Azione non riconosciuta: ' + action };
+    }
   } catch(err) {
     result = { error: err.toString() };
   }

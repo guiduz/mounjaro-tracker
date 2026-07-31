@@ -665,7 +665,9 @@
 
 <script>
 // ===================== STATE =====================
-const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbwpTavvUPYxNAbgWFbgP-nCjuGtKfLVAggKcfojMU2f7aDLTZ8qW21cwnTBYXoqfy4m9Q/exec';
+const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbzvmetmru2ZcGqFv1VHV9tPb-rDZ2wjmAVFiSs-ujGzEOI7q-Ut_E6jb2fdKNT3hTaIsw/exec';
+// Token segreto — deve essere IDENTICO a AUTH_TOKEN nello script GAS
+const AUTH_TOKEN = 'HFdNSj67pK4TE0ZnhMKredSfeCTw';
 let measurements = []; let injections = []; let symptomLogs = [];
 let weightChartInst = null; let chestChartInst = null; let pharmaChartInst = null; let symptomChartInst = null;
 let syncStatus = 'idle';
@@ -721,8 +723,8 @@ function setSyncStatus(status, msg) {
   el.innerHTML = icons[status] || ''; el.style.color = colors[status] || 'var(--color-text-muted)';
 }
 async function gsFetch(params) {
-  // _t = cache-buster: evita che GAS/browser restituisca risposta cached
-  const p = Object.assign({ _t: Date.now() }, params);
+  // token = autenticazione; _t = cache-buster
+  const p = Object.assign({ token: AUTH_TOKEN, _t: Date.now() }, params);
   const resp = await fetch(SCRIPT_URL + '?' + new URLSearchParams(p).toString());
   if(!resp.ok) throw new Error('HTTP '+resp.status);
   return await resp.json();
@@ -780,6 +782,10 @@ async function testGASConnection() {
 
     // Step 2: leggi dati reali
     const data = await gsFetch({ action: 'getData' });
+    if(data.error === 'Non autorizzato') {
+      showToast('🔒 Token non valido — controlla che AUTH_TOKEN sia uguale nei due file');
+      return;
+    }
     if(data.error) { showToast('❌ GAS errore getData: ' + data.error); return; }
 
     const m = (data.measurements||[]).length;
