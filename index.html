@@ -169,11 +169,11 @@
 
     /* CARDS & KPI */
     .kpi-grid { display: grid; grid-template-columns: 1fr 1fr; gap: var(--space-3); margin-bottom: var(--space-4); }
-    .kpi-card { background: var(--color-surface); border-radius: var(--radius-xl); padding: var(--space-4); box-shadow: var(--shadow-sm); border: 1px solid oklch(from var(--color-border) l c h / 0.6); }
+    .kpi-card { background: var(--color-surface); border-radius: var(--radius-lg); padding: var(--space-3); box-shadow: var(--shadow-sm); border: 1px solid oklch(from var(--color-border) l c h / 0.6); }
     .kpi-card.accent { background: var(--color-primary-soft); border-color: var(--color-primary-highlight); }
     .kpi-card.injection-card { background: var(--color-injection-soft); border-color: oklch(from var(--color-injection) l c h / 0.2); }
-    .kpi-label { font-size: var(--text-xs); color: var(--color-text-muted); font-weight: 500; text-transform: uppercase; letter-spacing: 0.06em; margin-bottom: var(--space-1); }
-    .kpi-value { font-size: var(--text-xl); font-weight: 700; font-family: var(--font-mono); line-height: 1.1; }
+    .kpi-label { font-size: 0.7rem; color: var(--color-text-muted); font-weight: 500; text-transform: uppercase; letter-spacing: 0.03em; margin-bottom: 2px; line-height: 1.25; }
+    .kpi-value { font-size: var(--text-lg); font-weight: 700; font-family: var(--font-mono); line-height: 1.1; }
     .kpi-value.primary { color: var(--color-primary); }
     .kpi-value.injection { color: var(--color-injection); }
     .kpi-delta { font-size: var(--text-xs); font-weight: 600; margin-top: var(--space-1); display: flex; align-items: center; gap: 2px; }
@@ -252,14 +252,15 @@
     .month-delta.gain { color: var(--color-error); }
 
     /* Dose phase card */
-    .dose-phase-card { background: var(--color-primary-soft); border: 1px solid var(--color-primary-highlight); border-radius: var(--radius-xl); padding: var(--space-4); margin-bottom: var(--space-4); }
-    .dose-phase-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: var(--space-2); }
-    .dose-phase-title { font-size: var(--text-sm); font-weight: 700; color: var(--color-primary); display: flex; align-items: center; gap: var(--space-2); }
-    .dose-phase-badge { font-family: var(--font-mono); font-size: var(--text-lg); font-weight: 700; color: var(--color-primary); }
-    .dose-phase-next { font-size: var(--text-xs); color: var(--color-text-muted); text-align: right; }
-    .dose-progress-track { height: 8px; background: oklch(from var(--color-primary) l c h / 0.15); border-radius: var(--radius-full); overflow: hidden; margin: var(--space-2) 0; }
+    .dose-phase-card { background: var(--color-primary-soft); border: 1px solid var(--color-primary-highlight); border-radius: var(--radius-lg); padding: var(--space-3); margin-bottom: var(--space-3); }
+    .dose-phase-header { display: flex; justify-content: space-between; align-items: flex-start; gap: 8px; margin-bottom: 6px; }
+    .dose-phase-title { font-size: 0.78rem; font-weight: 700; color: var(--color-primary); display: flex; align-items: center; gap: 5px; white-space: nowrap; }
+    .dose-phase-title svg { width: 14px; height: 14px; flex-shrink: 0; }
+    .dose-phase-badge { font-family: var(--font-mono); font-size: var(--text-base); font-weight: 700; color: var(--color-primary); }
+    .dose-phase-next { font-size: 0.68rem; color: var(--color-text-muted); text-align: right; line-height: 1.35; }
+    .dose-progress-track { height: 6px; background: oklch(from var(--color-primary) l c h / 0.15); border-radius: var(--radius-full); overflow: hidden; margin: 5px 0; }
     .dose-progress-fill { height: 100%; background: var(--color-primary); border-radius: var(--radius-full); transition: width 0.5s cubic-bezier(0.16,1,0.3,1); }
-    .dose-progress-labels { display: flex; justify-content: space-between; font-size: var(--text-xs); color: var(--color-text-muted); }
+    .dose-progress-labels { display: flex; justify-content: space-between; gap: 6px; font-size: 0.68rem; color: var(--color-text-muted); }
     .dose-progress-labels span { font-weight: 600; color: var(--color-primary); }
 
     /* Sintomi per dose */
@@ -310,11 +311,18 @@
     .export-btn-container { text-align: center; margin-bottom: var(--space-4); }
 
     /* NEXT INJ CARD */
-    .next-injection-card { background: linear-gradient(135deg, var(--color-injection-soft), var(--color-primary-soft)); border: 1px solid oklch(from var(--color-injection) l c h / 0.2); border-radius: var(--radius-xl); padding: var(--space-4); margin-bottom: var(--space-4); display: flex; align-items: center; gap: var(--space-3); }
-    .next-inj-icon { width: 44px; height: 44px; border-radius: var(--radius-full); background: var(--color-injection-soft); border: 2px solid oklch(from var(--color-injection) l c h / 0.3); display: flex; align-items: center; justify-content: center; flex-shrink: 0; color: var(--color-injection); }
-    .next-inj-label { font-size: var(--text-xs); color: var(--color-text-muted); font-weight: 600; text-transform: uppercase; }
-    .next-inj-value { font-size: var(--text-base); font-weight: 700; color: var(--color-injection); }
-    .next-inj-days { font-size: var(--text-xs); color: var(--color-text-muted); }
+    .next-injection-card { background: linear-gradient(135deg, var(--color-injection-soft), var(--color-primary-soft)); border: 1px solid oklch(from var(--color-injection) l c h / 0.2); border-radius: var(--radius-lg); padding: var(--space-3); margin-bottom: var(--space-3); display: block; }
+    .next-inj-icon { width: 28px; height: 28px; border-radius: var(--radius-full); background: var(--color-injection-soft); border: 1.5px solid oklch(from var(--color-injection) l c h / 0.3); display: flex; align-items: center; justify-content: center; flex-shrink: 0; color: var(--color-injection); }
+    .next-inj-icon svg { width: 15px; height: 15px; }
+    .next-inj-label { font-size: 0.7rem; color: var(--color-text-muted); font-weight: 600; text-transform: uppercase; letter-spacing: 0.02em; white-space: nowrap; }
+    .next-inj-value { font-size: var(--text-sm); font-weight: 700; color: var(--color-injection); }
+    .next-inj-days { font-size: 0.7rem; color: var(--color-text-muted); }
+    .inj-row { display: flex; align-items: baseline; justify-content: space-between; gap: 6px; padding: 3px 7px; border-radius: var(--radius-sm); }
+    .inj-row.first { background: oklch(from var(--color-injection) l c h / 0.10); padding: 5px 7px; }
+    .inj-row-date { font-size: 0.78rem; font-weight: 600; white-space: nowrap; }
+    .inj-row.first .inj-row-date { font-size: 0.85rem; font-weight: 700; }
+    .inj-row-dose { font-size: 0.68rem; color: var(--color-text-muted); margin-left: 4px; }
+    .inj-row-badge { font-size: 0.68rem; font-weight: 600; white-space: nowrap; flex-shrink: 0; }
 
     /* UTILS & SELECT */
     .empty-state { text-align: center; padding: var(--space-12) var(--space-8); color: var(--color-text-muted); }
@@ -1212,9 +1220,45 @@ function renderHome() {
 }
 
 function renderNextInjection() {
-  const card = document.getElementById('nextInjectionCard'); if(injections.length === 0) { card.innerHTML = ''; return; }
-  const last = injections[injections.length - 1]; const next = addDays(last.date, 7); const days = diffDays(todayStr(), next);
-  card.innerHTML = `<div class="next-injection-card"><div class="next-inj-icon"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10.5 2.5L7 6M14 6l2 2M6 18l-2 2M17.5 6.5l2-2M12 12l-8 8M9.5 14.5L4 20M15 9l-6 6"/><path d="M20 4l-3.5 3.5"/></svg></div><div style="flex:1"><div class="next-inj-label">${days<0?'Puntura scaduta':days===0?'Puntura oggi!':'Prossima puntura'}</div><div class="next-inj-value">${formatDate(next)} · ${getSuggestedNextDose()}</div><div class="next-inj-days">Sede cons.: ${getSuggestedSite()} ${days>0?'(tra '+days+' gg)':''}</div></div><button onclick="addToGoogleCalendar(${injections.length-1})" style="width:40px;height:40px;border-radius:var(--radius-md);display:flex;align-items:center;justify-content:center;color:var(--color-injection);background:var(--color-injection-soft);border:1px solid oklch(from var(--color-injection) l c h / 0.2)"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/><path d="M8 14h.01M12 14h.01M16 14h.01"/></svg></button></div>`;
+  const card = document.getElementById('nextInjectionCard');
+  if(injections.length === 0) { card.innerHTML = ''; return; }
+  const last = injections[injections.length - 1];
+  const nextDose = getSuggestedNextDose();
+  const sugSite = getSuggestedSite();
+
+  // Genera le 3 prossime date (settimane +1, +2, +3)
+  const upcoming = [1, 2, 3].map(w => {
+    const date = addDays(last.date, 7 * w);
+    const days = diffDays(todayStr(), date);
+    const label = days < 0 ? `${Math.abs(days)} gg fa` : days === 0 ? 'Oggi!' : `tra ${days} gg`;
+    return { date, days, label };
+  });
+
+  const rowsHtml = upcoming.map((u, i) => {
+    const isUrgent = u.days <= 0;
+    const isSoon = u.days > 0 && u.days <= 2;
+    const badgeColor = isUrgent ? 'var(--color-error)' : isSoon ? 'var(--color-warning)' : 'var(--color-text-muted)';
+    return `<div class="inj-row${i === 0 ? ' first' : ''}">
+      <span><span class="inj-row-date">${formatDateWithDay(u.date)}</span><span class="inj-row-dose">${nextDose}</span></span>
+      <span class="inj-row-badge" style="color:${badgeColor}">${u.label}</span>
+    </div>`;
+  }).join('');
+
+  card.innerHTML = `<div class="next-injection-card">
+    <div style="display:flex;align-items:center;justify-content:space-between;gap:6px;margin-bottom:6px">
+      <div style="display:flex;align-items:center;gap:6px;min-width:0">
+        <div class="next-inj-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10.5 2.5L7 6M14 6l2 2M6 18l-2 2M17.5 6.5l2-2M12 12l-8 8M9.5 14.5L4 20M15 9l-6 6"/><path d="M20 4l-3.5 3.5"/></svg></div>
+        <span class="next-inj-label">Prossime punture</span>
+      </div>
+      <button onclick="addToGoogleCalendar(${injections.length-1})" title="Aggiungi al calendario" style="width:26px;height:26px;flex-shrink:0;border-radius:var(--radius-sm);display:flex;align-items:center;justify-content:center;color:var(--color-injection);background:var(--color-injection-soft);border:1px solid oklch(from var(--color-injection) l c h / 0.2)">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/><path d="M8 14h.01M12 14h.01M16 14h.01"/></svg>
+      </button>
+    </div>
+    <div style="display:flex;flex-direction:column;gap:1px">${rowsHtml}</div>
+    <div class="next-inj-days" style="margin-top:6px;padding-top:5px;border-top:1px solid oklch(from var(--color-border) l c h / 0.6)">
+      Sede: <strong>${sugSite}</strong>
+    </div>
+  </div>`;
 }
 
 function renderKPIs() {
