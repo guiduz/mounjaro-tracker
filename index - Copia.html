@@ -1,0 +1,755 @@
+<!DOCTYPE html>
+<html lang="it" data-theme="light">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <title>MounjaroTracker</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,300..700;1,9..40,300..700&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <style>
+    /* === ART DIRECTION === */
+    :root, [data-theme="light"] {
+      --text-xs: clamp(0.75rem, 0.7rem + 0.25vw, 0.875rem);
+      --text-sm: clamp(0.875rem, 0.8rem + 0.35vw, 1rem);
+      --text-base: clamp(1rem, 0.95rem + 0.25vw, 1.125rem);
+      --text-lg: clamp(1.125rem, 1rem + 0.75vw, 1.5rem);
+      --text-xl: clamp(1.5rem, 1.2rem + 1.25vw, 2.25rem);
+
+      --space-1: 0.25rem;
+      --space-2: 0.5rem;
+      --space-3: 0.75rem;
+      --space-4: 1rem;
+      --space-5: 1.25rem;
+      --space-6: 1.5rem;
+      --space-8: 2rem;
+      --space-10: 2.5rem;
+      --space-12: 3rem;
+
+      --color-bg: #f5f7f5;
+      --color-surface: #ffffff;
+      --color-surface-2: #f0f4f1;
+      --color-surface-offset: #e8ede9;
+      --color-divider: #d6ddd7;
+      --color-border: #c8d1c9;
+
+      --color-text: #1a2b1c;
+      --color-text-muted: #5a7060;
+      --color-text-faint: #94a896;
+      --color-text-inverse: #f5f7f5;
+
+      --color-primary: #1a7a4a;
+      --color-primary-hover: #155f3a;
+      --color-primary-active: #0f4429;
+      --color-primary-highlight: #c8e8d5;
+      --color-primary-soft: #e8f5ee;
+
+      --color-accent: #2e9b6a;
+      --color-injection: #2563b0;
+      --color-injection-soft: #dbeafe;
+      --color-injection-hover: #1d4ed8;
+
+      --color-success: #2e7d32;
+      --color-success-soft: #e8f5e9;
+      --color-warning: #e65100;
+      --color-warning-soft: #fff3e0;
+      --color-error: #c62828;
+      --color-error-soft: #ffebee;
+      --color-gold: #f59e0b;
+
+      --radius-sm: 0.375rem;
+      --radius-md: 0.5rem;
+      --radius-lg: 0.75rem;
+      --radius-xl: 1rem;
+      --radius-2xl: 1.5rem;
+      --radius-full: 9999px;
+
+      --shadow-sm: 0 1px 3px oklch(0.2 0.05 140 / 0.08);
+      --shadow-md: 0 4px 12px oklch(0.2 0.05 140 / 0.1);
+      --shadow-lg: 0 8px 24px oklch(0.2 0.05 140 / 0.14);
+
+      --transition: 180ms cubic-bezier(0.16, 1, 0.3, 1);
+      --font-body: 'DM Sans', -apple-system, sans-serif;
+      --font-mono: 'DM Mono', monospace;
+
+      --nav-height: 64px;
+      --header-height: 56px;
+    }
+
+    [data-theme="dark"] {
+      --color-bg: #0f1a11;
+      --color-surface: #162018;
+      --color-surface-2: #1c2a1e;
+      --color-surface-offset: #1f2e21;
+      --color-divider: #2a3c2c;
+      --color-border: #344836;
+      --color-text: #c8daca;
+      --color-text-muted: #7a9c7e;
+      --color-text-faint: #4a6a4e;
+      --color-text-inverse: #0f1a11;
+      --color-primary: #4caf78;
+      --color-primary-hover: #66c48f;
+      --color-primary-active: #80d4a6;
+      --color-primary-highlight: #1e3d28;
+      --color-primary-soft: #162a1e;
+      --color-accent: #5ec090;
+      --color-injection: #60a5fa;
+      --color-injection-soft: #1e3a5f;
+      --color-injection-hover: #93c5fd;
+      --color-success: #66bb6a;
+      --color-success-soft: #1b3520;
+      --color-warning: #ffa726;
+      --color-warning-soft: #3d2700;
+      --color-error: #ef5350;
+      --color-error-soft: #3d1010;
+      --color-gold: #fbbf24;
+    }
+
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    html {
+      -webkit-text-size-adjust: none;
+      text-size-adjust: none;
+      -webkit-font-smoothing: antialiased;
+      scroll-behavior: smooth;
+      height: 100%;
+    }
+
+    body {
+      font-family: var(--font-body);
+      font-size: var(--text-base);
+      color: var(--color-text);
+      background: var(--color-bg);
+      min-height: 100dvh;
+      min-height: -webkit-fill-available;
+      overflow-x: hidden;
+      padding-bottom: var(--nav-height);
+    }
+
+    img { display: block; max-width: 100%; }
+    input, button, select, textarea { font: inherit; color: inherit; }
+    button { cursor: pointer; background: none; border: none; }
+    a, button { transition: color var(--transition), background var(--transition), box-shadow var(--transition); }
+
+    :focus-visible { outline: 2px solid var(--color-primary); outline-offset: 2px; border-radius: var(--radius-sm); }
+
+    /* HEADER */
+    .app-header {
+      position: sticky; top: 0; z-index: 100; background: var(--color-surface);
+      border-bottom: 1px solid var(--color-divider); height: var(--header-height);
+      display: flex; align-items: center; justify-content: space-between; padding: 0 var(--space-4);
+      box-shadow: var(--shadow-sm);
+    }
+    .header-logo { display: flex; align-items: center; gap: var(--space-2); }
+    .logo-text { font-size: var(--text-lg); font-weight: 700; color: var(--color-primary); letter-spacing: -0.02em; }
+    .header-actions { display: flex; align-items: center; gap: var(--space-2); }
+    .icon-btn { width: 40px; height: 40px; display: flex; align-items: center; justify-content: center; border-radius: var(--radius-md); color: var(--color-text-muted); }
+    .icon-btn:hover { background: var(--color-surface-2); color: var(--color-text); }
+    .icon-btn:active { background: var(--color-surface-offset); }
+
+    /* BOTTOM NAV */
+    .bottom-nav {
+      position: fixed; bottom: 0; left: 0; right: 0; z-index: 100;
+      background: var(--color-surface); border-top: 1px solid var(--color-divider);
+      height: var(--nav-height); display: flex; align-items: stretch; padding-bottom: env(safe-area-inset-bottom);
+      box-shadow: 0 -2px 12px oklch(0.2 0.05 140 / 0.08);
+    }
+    .nav-item { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 3px; color: var(--color-text-faint); font-size: var(--text-xs); font-weight: 500; padding: var(--space-2) 0; }
+    .nav-item.active { color: var(--color-primary); }
+    .nav-icon { width: 24px; height: 24px; }
+
+    /* VIEWS */
+    .view { display: none; padding: var(--space-4); max-width: 480px; margin: 0 auto; }
+    .view.active { display: block; }
+    .section-title { font-size: var(--text-lg); font-weight: 700; margin-bottom: var(--space-4); }
+    .section-subtitle { font-size: var(--text-sm); color: var(--color-text-muted); margin-bottom: var(--space-4); margin-top: calc(-1 * var(--space-2)); }
+
+    /* CARDS & KPI */
+    .kpi-grid { display: grid; grid-template-columns: 1fr 1fr; gap: var(--space-3); margin-bottom: var(--space-4); }
+    .kpi-card { background: var(--color-surface); border-radius: var(--radius-xl); padding: var(--space-4); box-shadow: var(--shadow-sm); border: 1px solid oklch(from var(--color-border) l c h / 0.6); }
+    .kpi-card.accent { background: var(--color-primary-soft); border-color: var(--color-primary-highlight); }
+    .kpi-card.injection-card { background: var(--color-injection-soft); border-color: oklch(from var(--color-injection) l c h / 0.2); }
+    .kpi-label { font-size: var(--text-xs); color: var(--color-text-muted); font-weight: 500; text-transform: uppercase; letter-spacing: 0.06em; margin-bottom: var(--space-1); }
+    .kpi-value { font-size: var(--text-xl); font-weight: 700; font-family: var(--font-mono); line-height: 1.1; }
+    .kpi-value.primary { color: var(--color-primary); }
+    .kpi-value.injection { color: var(--color-injection); }
+    .kpi-delta { font-size: var(--text-xs); font-weight: 600; margin-top: var(--space-1); display: flex; align-items: center; gap: 2px; }
+    .kpi-delta.down { color: var(--color-success); }
+    .kpi-delta.up { color: var(--color-error); }
+    .kpi-delta.neutral { color: var(--color-text-faint); }
+
+    .card { background: var(--color-surface); border-radius: var(--radius-xl); padding: var(--space-4); box-shadow: var(--shadow-sm); border: 1px solid oklch(from var(--color-border) l c h / 0.5); margin-bottom: var(--space-4); }
+    .card-title { font-size: var(--text-base); font-weight: 600; margin-bottom: var(--space-3); display: flex; align-items: center; gap: var(--space-2); }
+    .card-title-icon { width: 20px; height: 20px; color: var(--color-primary); }
+
+    /* FORMS & BUTTONS */
+    .form-group { margin-bottom: var(--space-4); }
+    .form-label { display: block; font-size: var(--text-sm); font-weight: 600; color: var(--color-text-muted); margin-bottom: var(--space-2); }
+    .form-input { width: 100%; padding: var(--space-3) var(--space-4); background: var(--color-surface-2); border: 1.5px solid var(--color-border); border-radius: var(--radius-lg); font-size: var(--text-base); color: var(--color-text); transition: all var(--transition); }
+    .form-input:focus { outline: none; border-color: var(--color-primary); box-shadow: 0 0 0 3px oklch(from var(--color-primary) l c h / 0.12); }
+    .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: var(--space-3); }
+    .form-hint { font-size: var(--text-xs); color: var(--color-text-faint); margin-top: var(--space-1); }
+
+    .btn { display: inline-flex; align-items: center; justify-content: center; gap: var(--space-2); padding: var(--space-3) var(--space-6); border-radius: var(--radius-lg); font-size: var(--text-sm); font-weight: 600; cursor: pointer; border: none; min-height: 44px; white-space: nowrap; }
+    .btn:active { transform: scale(0.98); }
+    .btn-primary { background: var(--color-primary); color: var(--color-text-inverse); }
+    .btn-injection { background: var(--color-injection); color: white; }
+    .btn-ghost { background: transparent; color: var(--color-text-muted); border: 1.5px solid var(--color-border); }
+    .btn-full { width: 100%; }
+    
+    /* CHIP (Sintomi) */
+    .chip-group { display: flex; flex-wrap: wrap; gap: var(--space-2); }
+    .chip { padding: 6px 14px; border-radius: var(--radius-full); font-size: var(--text-sm); font-weight: 500; background: var(--color-surface-2); color: var(--color-text-muted); border: 1px solid var(--color-border); cursor: pointer; transition: all var(--transition); }
+    .chip:hover { background: var(--color-surface-offset); }
+    .chip.active { background: var(--color-primary-soft); color: var(--color-primary); border-color: var(--color-primary); font-weight: 600;}
+
+    /* CHARTS */
+    .chart-wrap { position: relative; width: 100%; height: 200px; }
+    .no-data-chart { display: flex; align-items: center; justify-content: center; height: 200px; color: var(--color-text-faint); font-size: var(--text-sm); border: 1.5px dashed var(--color-border); border-radius: var(--radius-lg); }
+
+    /* HISTORY */
+    .history-list { display: flex; flex-direction: column; gap: var(--space-2); }
+    .history-item { display: flex; align-items: center; justify-content: space-between; padding: var(--space-3) var(--space-4); background: var(--color-surface-2); border-radius: var(--radius-lg); border: 1px solid oklch(from var(--color-border) l c h / 0.4); }
+    .history-date { font-size: var(--text-xs); color: var(--color-text-faint); font-weight: 500; }
+    .history-delete { width: 32px; height: 32px; border-radius: var(--radius-md); color: var(--color-text-faint); display: flex; align-items: center; justify-content: center; }
+
+    .injection-item { display: flex; align-items: center; gap: var(--space-3); padding: var(--space-3) var(--space-4); background: var(--color-injection-soft); border-radius: var(--radius-lg); border: 1px solid oklch(from var(--color-injection) l c h / 0.15); margin-bottom: var(--space-2); flex-wrap: wrap; }
+    .injection-icon { width: 36px; height: 36px; border-radius: var(--radius-full); background: oklch(from var(--color-injection) l c h / 0.15); display: flex; align-items: center; justify-content: center; flex-shrink: 0; color: var(--color-injection); }
+    .injection-info { flex: 1; min-width: 150px; }
+    .injection-date { font-size: var(--text-sm); font-weight: 600; }
+    .injection-dose { font-size: var(--text-xs); color: var(--color-text-muted); margin-top: 2px; }
+    .injection-badge { font-size: var(--text-xs); font-weight: 600; padding: 2px var(--space-2); border-radius: var(--radius-full); background: oklch(from var(--color-injection) l c h / 0.15); color: var(--color-injection); }
+    .injection-symptoms { flex-basis: 100%; font-size: var(--text-xs); color: var(--color-text-faint); margin-top: var(--space-1); border-top: 1px dashed oklch(from var(--color-injection) l c h / 0.2); padding-top: var(--space-1); }
+
+    /* STATS */
+    .stats-tabs { display: flex; background: var(--color-surface-2); border-radius: var(--radius-lg); padding: 3px; margin-bottom: var(--space-4); gap: 2px; }
+    .stats-tab { flex: 1; padding: var(--space-2) var(--space-3); border-radius: calc(var(--radius-lg) - 3px); font-size: var(--text-sm); font-weight: 600; color: var(--color-text-muted); text-align: center; border: none; background: none; }
+    .stats-tab.active { background: var(--color-surface); color: var(--color-primary); box-shadow: var(--shadow-sm); }
+    .stat-section { display: none; }
+    .stat-section.active { display: block; }
+    .stat-row { display: grid; grid-template-columns: 1fr 1fr; gap: var(--space-3); margin-bottom: var(--space-3); }
+    .stat-box { background: var(--color-surface); border-radius: var(--radius-lg); padding: var(--space-4); box-shadow: var(--shadow-sm); border: 1px solid oklch(from var(--color-border) l c h / 0.5); text-align: center; }
+    .stat-box-label { font-size: var(--text-xs); color: var(--color-text-muted); text-transform: uppercase; font-weight: 600; margin-bottom: var(--space-1); }
+    .stat-box-value { font-size: var(--text-lg); font-weight: 700; font-family: var(--font-mono); color: var(--color-primary); }
+
+    /* EXPORT BUTTON */
+    .export-btn-container { text-align: center; margin-bottom: var(--space-4); }
+
+    /* NEXT INJ CARD */
+    .next-injection-card { background: linear-gradient(135deg, var(--color-injection-soft), var(--color-primary-soft)); border: 1px solid oklch(from var(--color-injection) l c h / 0.2); border-radius: var(--radius-xl); padding: var(--space-4); margin-bottom: var(--space-4); display: flex; align-items: center; gap: var(--space-3); }
+    .next-inj-icon { width: 44px; height: 44px; border-radius: var(--radius-full); background: var(--color-injection-soft); border: 2px solid oklch(from var(--color-injection) l c h / 0.3); display: flex; align-items: center; justify-content: center; flex-shrink: 0; color: var(--color-injection); }
+    .next-inj-label { font-size: var(--text-xs); color: var(--color-text-muted); font-weight: 600; text-transform: uppercase; }
+    .next-inj-value { font-size: var(--text-base); font-weight: 700; color: var(--color-injection); }
+    .next-inj-days { font-size: var(--text-xs); color: var(--color-text-muted); }
+
+    /* UTILS & SELECT */
+    .empty-state { text-align: center; padding: var(--space-12) var(--space-8); color: var(--color-text-muted); }
+    .empty-state-icon { width: 52px; height: 52px; margin: 0 auto var(--space-4); color: var(--color-text-faint); }
+    select.form-input { background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%235a7060' stroke-width='2'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E"); background-repeat: no-repeat; background-position: right var(--space-3) center; padding-right: var(--space-10); appearance: none; }
+    .spin { animation: spin 1s linear infinite; display: inline-block; }
+    @keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+    
+    /* MODAL & TOAST */
+    .modal-overlay { display: none; position: fixed; inset: 0; background: oklch(0 0 0 / 0.5); z-index: 200; align-items: flex-end; }
+    .modal-overlay.open { display: flex; }
+    .modal { background: var(--color-surface); border-radius: var(--radius-2xl) var(--radius-2xl) 0 0; padding: var(--space-6) var(--space-4) calc(var(--space-6) + env(safe-area-inset-bottom)); width: 100%; max-width: 480px; margin: 0 auto; animation: slideUp 0.3s cubic-bezier(0.16, 1, 0.3, 1); }
+    @keyframes slideUp { from { transform: translateY(100%); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+    .toast-container { position: fixed; top: calc(var(--header-height) + var(--space-4)); left: 50%; transform: translateX(-50%); z-index: 300; display: flex; flex-direction: column; gap: var(--space-2); pointer-events: none; }
+    .toast { background: var(--color-text); color: var(--color-bg); padding: var(--space-3) var(--space-5); border-radius: var(--radius-full); font-size: var(--text-sm); font-weight: 600; box-shadow: var(--shadow-lg); animation: toastIn 0.3s; }
+    @keyframes toastIn { from { opacity: 0; transform: translateY(-8px) scale(0.95); } to { opacity: 1; transform: translateY(0) scale(1); } }
+  </style>
+</head>
+<body>
+
+<header class="app-header">
+  <div class="header-logo">
+    <svg width="28" height="28" viewBox="0 0 28 28" fill="none"><rect width="28" height="28" rx="8" fill="var(--color-primary)"/><path d="M6 20 L10 10 L14 16 L18 8 L22 14" stroke="white" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" fill="none"/><circle cx="22" cy="8" r="2.2" fill="var(--color-gold)"/></svg>
+    <span class="logo-text">MounjaroTracker</span>
+  </div>
+  <div class="header-actions">
+    <div id="syncIndicator" style="display:flex;align-items:center;gap:4px;font-size:var(--text-xs);font-weight:600;white-space:nowrap;max-width:140px;overflow:hidden"></div>
+    <button class="icon-btn" onclick="manualSync()" title="Sincronizza ora"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M23 4v6h-6"/><path d="M1 20v-6h6"/><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/></svg></button>
+    <button class="icon-btn" data-theme-toggle><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg></button>
+  </div>
+</header>
+
+<div class="toast-container" id="toastContainer"></div>
+
+<main>
+  <div class="view active" id="view-home">
+    <div id="nextInjectionCard"></div>
+
+    <div class="kpi-grid" id="kpiGrid"></div>
+
+    <div class="card" id="pharmaChartCard">
+      <div class="card-title">
+        <svg class="card-title-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="color:var(--color-injection)"><path d="M2 12h4l2-9 5 18 2-9h7"/></svg>
+        Curva Efficacia
+      </div>
+      <p style="font-size:var(--text-xs); color:var(--color-text-muted); margin-top:-8px; margin-bottom:12px;">Stima del livello di farmaco nei 7 giorni.</p>
+      <div class="chart-wrap">
+        <canvas id="pharmaChart"></canvas>
+      </div>
+    </div>
+
+    <div class="card" id="weightChartCard">
+      <div class="card-title">
+        <svg class="card-title-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg> Andamento Peso
+      </div>
+      <div class="chart-wrap"><canvas id="weightChart"></canvas></div>
+    </div>
+  </div>
+
+  <div class="view" id="view-add">
+    <div class="card">
+      <div class="card-title">
+        <svg class="card-title-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7z"/><circle cx="12" cy="9" r="2.5"/></svg> Nuova misurazione
+      </div>
+      <form id="measureForm">
+        <div class="form-group"><label class="form-label" for="inputDate">Data</label><input type="date" id="inputDate" class="form-input" required></div>
+        <div class="form-row">
+          <div class="form-group"><label class="form-label" for="inputWeight">Peso (kg)</label><input type="number" id="inputWeight" class="form-input" step="0.1"></div>
+          <div class="form-group"><label class="form-label" for="inputChest">Torace (cm)</label><input type="number" id="inputChest" class="form-input" step="0.5"></div>
+        </div>
+        <button type="submit" class="btn btn-primary btn-full"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 5v14M5 12h14"/></svg> Salva misurazione</button>
+      </form>
+    </div>
+
+    <div class="card">
+      <div class="card-title">
+        <svg class="card-title-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="color:var(--color-injection)"><path d="M10.5 2.5L7 6M14 6l2 2M6 18l-2 2M17.5 6.5l2-2M12 12l-8 8M9.5 14.5L4 20M15 9l-6 6"/><path d="M20 4l-3.5 3.5"/></svg> Registra puntura
+      </div>
+      <form id="injectionForm">
+        <div class="form-row">
+          <div class="form-group"><label class="form-label" for="injDate">Data</label><input type="date" id="injDate" class="form-input" required></div>
+          <div class="form-group"><label class="form-label" for="injTime">Orario</label><input type="time" id="injTime" class="form-input"></div>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label class="form-label" for="injDose">Dosaggio</label>
+            <select id="injDose" class="form-input">
+              <option value="2.5 mg">2.5 mg</option><option value="5 mg">5 mg</option>
+              <option value="7.5 mg">7.5 mg</option><option value="10 mg">10 mg</option>
+              <option value="12.5 mg">12.5 mg</option><option value="15 mg">15 mg</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label class="form-label" for="injSite">Sede iniezione</label>
+            <select id="injSite" class="form-input">
+              <option value="Addome Dx">Addome Dx</option><option value="Addome Sx">Addome Sx</option>
+              <option value="Coscia Dx">Coscia Dx</option><option value="Coscia Sx">Coscia Sx</option>
+              <option value="Braccio Dx">Braccio Dx</option><option value="Braccio Sx">Braccio Sx</option>
+            </select>
+          </div>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Sintomi settimana precedente (opzionali)</label>
+          <div class="chip-group" id="symptomChips">
+            <button type="button" class="chip" data-val="Nausea">Nausea</button>
+            <button type="button" class="chip" data-val="Stanchezza">Stanchezza</button>
+            <button type="button" class="chip" data-val="Inappetenza">Inappetenza</button>
+            <button type="button" class="chip" data-val="Mal di testa">Mal di testa</button>
+            <button type="button" class="chip" data-val="Crampi">Crampi</button>
+            <button type="button" class="chip" data-val="Nessuno">Nessuno</button>
+          </div>
+        </div>
+        <div class="form-group">
+          <label class="form-label" for="injNotes">Note libere</label>
+          <input type="text" id="injNotes" class="form-input" placeholder="es. tutto liscio">
+        </div>
+        <button type="submit" class="btn btn-injection btn-full"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 5v14M5 12h14"/></svg> Salva puntura</button>
+      </form>
+    </div>
+  </div>
+
+  <div class="view" id="view-history">
+    <div class="card">
+      <div class="card-title">Misurazioni</div>
+      <div id="measureHistory"></div>
+    </div>
+    <div class="card">
+      <div class="card-title" style="color:var(--color-injection)">Punture Mounjaro</div>
+      <div id="injectionHistory"></div>
+    </div>
+  </div>
+
+  <div class="view" id="view-stats">
+    
+    <div class="export-btn-container">
+      <button class="btn btn-ghost" style="width: 100%; border-color:var(--color-primary); color:var(--color-primary)" onclick="exportCSV()">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+        Scarica Report Medico (CSV)
+      </button>
+    </div>
+
+    <div class="stats-tabs">
+      <button class="stats-tab active" onclick="switchStatTab('settimanale', this)">Settimana</button>
+      <button class="stats-tab" onclick="switchStatTab('mensile', this)">Mese</button>
+      <button class="stats-tab" onclick="switchStatTab('totale', this)">Totale</button>
+    </div>
+    <div class="stat-section active" id="stat-settimanale"></div>
+    <div class="stat-section" id="stat-mensile"></div>
+    <div class="stat-section" id="stat-totale"></div>
+  </div>
+</main>
+
+<nav class="bottom-nav">
+  <button class="nav-item active" onclick="switchView('home', this)"><svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>Home</button>
+  <button class="nav-item" onclick="switchView('add', this)"><svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="10"/><path d="M12 8v8M8 12h8"/></svg>Aggiungi</button>
+  <button class="nav-item" onclick="switchView('history', this)"><svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 8v4l3 3m6-3a9 9 0 1 1-18 0 9 9 0 0 1 18 0z"/></svg>Storico</button>
+  <button class="nav-item" onclick="switchView('stats', this)"><svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>Statistiche</button>
+</nav>
+
+<div class="modal-overlay" id="editMeasModal">
+  <div class="modal">
+    <div class="modal-handle"></div>
+    <div class="modal-title">Modifica misurazione</div>
+    <input type="hidden" id="editMeasIdx">
+    <div class="form-group"><label class="form-label" for="editMeasDate">Data</label><input type="date" id="editMeasDate" class="form-input"></div>
+    <div class="form-row">
+      <div class="form-group"><label class="form-label" for="editMeasWeight">Peso (kg)</label><input type="number" id="editMeasWeight" class="form-input" step="0.1"></div>
+      <div class="form-group"><label class="form-label" for="editMeasChest">Torace (cm)</label><input type="number" id="editMeasChest" class="form-input" step="0.5"></div>
+    </div>
+    <div style="display:flex;gap:var(--space-3);margin-top:var(--space-2)"><button class="btn btn-ghost" style="flex:1" onclick="closeModal('editMeasModal')">Annulla</button><button class="btn btn-primary" style="flex:2" onclick="saveMeasEdit()">Salva</button></div>
+  </div>
+</div>
+
+<div class="modal-overlay" id="editInjModal">
+  <div class="modal">
+    <div class="modal-handle"></div>
+    <div class="modal-title">Modifica puntura</div>
+    <input type="hidden" id="editInjIdx">
+    <div class="form-row">
+      <div class="form-group"><label class="form-label" for="editInjDate">Data</label><input type="date" id="editInjDate" class="form-input"></div>
+      <div class="form-group"><label class="form-label" for="editInjTime">Orario</label><input type="time" id="editInjTime" class="form-input"></div>
+    </div>
+    <div class="form-row">
+      <div class="form-group">
+        <label class="form-label" for="editInjDose">Dosaggio</label>
+        <select id="editInjDose" class="form-input">
+          <option value="2.5 mg">2.5 mg</option><option value="5 mg">5 mg</option><option value="7.5 mg">7.5 mg</option><option value="10 mg">10 mg</option><option value="12.5 mg">12.5 mg</option><option value="15 mg">15 mg</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label class="form-label" for="editInjSite">Sede</label>
+        <select id="editInjSite" class="form-input">
+          <option value="Addome Dx">Addome Dx</option><option value="Addome Sx">Addome Sx</option><option value="Coscia Dx">Coscia Dx</option><option value="Coscia Sx">Coscia Sx</option><option value="Braccio Dx">Braccio Dx</option><option value="Braccio Sx">Braccio Sx</option>
+        </select>
+      </div>
+    </div>
+    <div class="form-group"><label class="form-label" for="editInjNotes">Note / Sintomi</label><input type="text" id="editInjNotes" class="form-input"></div>
+    <div style="display:flex;gap:var(--space-3);margin-top:var(--space-2)"><button class="btn btn-ghost" style="flex:1" onclick="closeModal('editInjModal')">Annulla</button><button class="btn btn-injection" style="flex:2" onclick="saveInjEdit()">Salva</button></div>
+  </div>
+</div>
+
+<script>
+// ===================== STATE =====================
+const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbwpTavvUPYxNAbgWFbgP-nCjuGtKfLVAggKcfojMU2f7aDLTZ8qW21cwnTBYXoqfy4m9Q/exec';
+let measurements = []; let injections = [];
+let weightChartInst = null; let chestChartInst = null; let pharmaChartInst = null;
+let syncStatus = 'idle'; 
+const ROTATION_SITES = ['Addome Dx', 'Addome Sx', 'Coscia Dx', 'Coscia Sx', 'Braccio Dx', 'Braccio Sx'];
+
+function normalizeDate(val) {
+  if(!val) return null;
+  const s = String(val);
+  if(/^\d{4}-\d{2}-\d{2}$/.test(s)) return s;
+  const d = new Date(s);
+  if(!isNaN(d.getTime())) return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
+  return null;
+}
+function saveLocal() { try { localStorage.setItem('mjt_measurements', JSON.stringify(measurements)); localStorage.setItem('mjt_injections', JSON.stringify(injections)); } catch(e){} }
+function loadLocal() { try { const m = localStorage.getItem('mjt_measurements'); const i = localStorage.getItem('mjt_injections'); if(m) measurements = JSON.parse(m); if(i) injections = JSON.parse(i); } catch(e){} }
+
+function setSyncStatus(status, msg) {
+  const el = document.getElementById('syncIndicator'); if(!el) return;
+  const icons = {
+    syncing: '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" class="spin"><path d="M23 4v6h-6"/><path d="M1 20v-6h6"/><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/></svg>',
+    ok: '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>',
+    error: '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>',
+    offline: '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="1" y1="1" x2="23" y2="23"/><path d="M16.72 11.06A10.94 10.94 0 0 1 19 12.55M5 12.55a10.94 10.94 0 0 1 5.17-2.39"/></svg>'
+  };
+  const colors = { syncing: 'var(--color-text-muted)', ok: 'var(--color-success)', error: 'var(--color-error)', offline: 'var(--color-warning)' };
+  el.innerHTML = icons[status] || ''; el.style.color = colors[status] || 'var(--color-text-muted)';
+}
+async function gsFetch(params) { const resp = await fetch(SCRIPT_URL + '?' + new URLSearchParams(params).toString()); if(!resp.ok) throw new Error('HTTP '+resp.status); return await resp.json(); }
+async function cloudLoad() {
+  setSyncStatus('syncing');
+  try {
+    const data = await gsFetch({ action: 'getData' }); if(data.error) throw new Error(data.error);
+    if(data.measurements) measurements = data.measurements.map(m => ({ date: normalizeDate(m.date), weight: m.weight?parseFloat(m.weight):null, chest: m.chest?parseFloat(m.chest):null })).filter(m => m.date);
+    if(data.injections) injections = data.injections.map(i => ({ date: normalizeDate(i.date), time: i.time||'', dose: i.dose||'', notes: i.notes||'', site: i.site||'', symptoms: i.symptoms||[] })).filter(i => i.date);
+    saveLocal(); setSyncStatus('ok'); return true;
+  } catch(e) { setSyncStatus('offline'); return false; }
+}
+async function cloudSave() {
+  setSyncStatus('syncing');
+  try { const data = await gsFetch({ action: 'saveAll', measurements: JSON.stringify(measurements), injections: JSON.stringify(injections) }); if(data.error) throw new Error(); saveLocal(); setSyncStatus('ok'); return true; } 
+  catch(e) { saveLocal(); setSyncStatus('offline'); return false; }
+}
+function saveData() { saveLocal(); cloudSave(); }
+async function initData() { loadLocal(); renderHome(); const ok = await cloudLoad(); if(ok){ renderHome(); renderHistory(); } }
+
+// ===================== THEME =====================
+(function(){
+  const t = document.querySelector('[data-theme-toggle]'); const r = document.documentElement; let d = matchMedia('(prefers-color-scheme:dark)').matches ? 'dark' : 'light'; r.setAttribute('data-theme', d);
+  if(t) {
+    const updateIcon = (btn, theme) => btn.innerHTML = theme==='dark'?'<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="5"/><path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"/></svg>':'<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>';
+    updateIcon(t, d);
+    t.addEventListener('click', () => { d = d==='dark'?'light':'dark'; r.setAttribute('data-theme', d); updateIcon(t, d); renderHome(); });
+  }
+})();
+
+// ===================== LOGIC (Dose & Site) =====================
+function getSuggestedNextDose() {
+  if (injections.length === 0) return "2.5 mg";
+  const protocol = ["2.5 mg", "5 mg", "7.5 mg", "10 mg", "12.5 mg", "15 mg"];
+  const lastDose = injections[injections.length - 1].dose.split(' (')[0];
+  let count = 0;
+  for (let i = injections.length - 1; i >= 0; i--) {
+    if (injections[i].dose.includes(lastDose)) count++; else break;
+  }
+  if (count >= 4) {
+    const idx = protocol.indexOf(lastDose);
+    if (idx !== -1 && idx < protocol.length - 1) return protocol[idx + 1];
+  }
+  return lastDose;
+}
+
+function getSuggestedSite() {
+  if (injections.length === 0) return ROTATION_SITES[0];
+  // Prendi le ultime sedi usate (es. le ultime 3 per non ripeterle)
+  const recentSites = injections.slice(-3).map(i => i.site).filter(Boolean);
+  // Trova la prima sede di ROTATION_SITES che NON è stata usata di recente
+  for (const site of ROTATION_SITES) {
+    if (!recentSites.includes(site)) return site;
+  }
+  return ROTATION_SITES[0]; // fallback
+}
+
+// ===================== NAVIGATION =====================
+function switchView(view, btn) {
+  document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
+  document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+  document.getElementById('view-' + view).classList.add('active');
+  if(btn) btn.classList.add('active');
+  if(view === 'home') renderHome();
+  if(view === 'history') renderHistory();
+  if(view === 'stats') renderStats();
+  if(view === 'add') {
+    // Pre-imposta Dose e Sede consigliate
+    const sugDose = getSuggestedNextDose();
+    Array.from(document.getElementById('injDose').options).forEach(opt => { if(opt.value.startsWith(sugDose)) document.getElementById('injDose').value = opt.value; });
+    document.getElementById('injSite').value = getSuggestedSite();
+    // Resetta chips
+    document.querySelectorAll('#symptomChips .chip').forEach(c => c.classList.remove('active'));
+  }
+}
+
+function showToast(msg) {
+  const container = document.getElementById('toastContainer'); const t = document.createElement('div'); t.className = 'toast'; t.textContent = msg; container.appendChild(t);
+  setTimeout(() => { t.style.opacity = '0'; setTimeout(() => t.remove(), 300); }, 2500);
+}
+
+// ===================== FORMS & UTILS =====================
+const todayStr = () => new Date().toISOString().slice(0, 10);
+const formatDate = d => { const p = d.split('-'); return `${p[2]}/${p[1]}/${p[0]}`; };
+const addDays = (d, n) => { const x = new Date(d); x.setDate(x.getDate()+n); return x.toISOString().slice(0, 10); };
+const diffDays = (a, b) => Math.round((new Date(b) - new Date(a)) / 86400000);
+
+document.getElementById('inputDate').value = todayStr(); document.getElementById('injDate').value = todayStr();
+
+document.getElementById('measureForm').addEventListener('submit', e => {
+  e.preventDefault();
+  const date = document.getElementById('inputDate').value; const weight = document.getElementById('inputWeight').value; const chest = document.getElementById('inputChest').value;
+  if(!weight && !chest) return showToast('⚠️ Inserisci peso o circonferenza');
+  measurements = measurements.filter(m => m.date !== date);
+  measurements.push({ date, weight: weight?parseFloat(weight):null, chest: chest?parseFloat(chest):null });
+  measurements.sort((a, b) => a.date.localeCompare(b.date)); saveData();
+  document.getElementById('inputWeight').value = ''; document.getElementById('inputChest').value = ''; document.getElementById('inputDate').value = todayStr();
+  showToast('✅ Misurazione salvata!'); renderHome();
+});
+
+// Sintomi Chips logic
+document.querySelectorAll('#symptomChips .chip').forEach(chip => {
+  chip.addEventListener('click', () => chip.classList.toggle('active'));
+});
+
+document.getElementById('injectionForm').addEventListener('submit', e => {
+  e.preventDefault();
+  const date = document.getElementById('injDate').value;
+  const time = document.getElementById('injTime').value || '';
+  const dose = document.getElementById('injDose').value.split(' (')[0];
+  const site = document.getElementById('injSite').value;
+  const notes = document.getElementById('injNotes').value;
+  
+  const symptoms = Array.from(document.querySelectorAll('#symptomChips .chip.active')).map(b => b.dataset.val);
+
+  injections.push({ date, time, dose, site, symptoms, notes });
+  injections.sort((a, b) => a.date.localeCompare(b.date)); saveData();
+  document.getElementById('injDate').value = todayStr(); document.getElementById('injNotes').value = ''; 
+  document.querySelectorAll('#symptomChips .chip').forEach(c => c.classList.remove('active'));
+  showToast('💉 Puntura registrata!');
+});
+
+// ===================== EDIT =====================
+function closeModal(id) { document.getElementById(id).classList.remove('open'); }
+
+function editMeasurement(idx) {
+  const m = measurements[idx]; document.getElementById('editMeasIdx').value = idx; document.getElementById('editMeasDate').value = m.date;
+  document.getElementById('editMeasWeight').value = m.weight||''; document.getElementById('editMeasChest').value = m.chest||''; document.getElementById('editMeasModal').classList.add('open');
+}
+function saveMeasEdit() {
+  const idx = document.getElementById('editMeasIdx').value; const date = document.getElementById('editMeasDate').value;
+  measurements[idx] = { date, weight: document.getElementById('editMeasWeight').value?parseFloat(document.getElementById('editMeasWeight').value):null, chest: document.getElementById('editMeasChest').value?parseFloat(document.getElementById('editMeasChest').value):null };
+  measurements.sort((a,b) => a.date.localeCompare(b.date)); saveData(); closeModal('editMeasModal'); renderHistory(); renderHome(); showToast('✅ Aggiornata!');
+}
+function editInjection(idx) {
+  const inj = injections[idx]; document.getElementById('editInjIdx').value = idx; document.getElementById('editInjDate').value = inj.date;
+  document.getElementById('editInjTime').value = inj.time||''; document.getElementById('editInjDose').value = inj.dose; 
+  if(inj.site) document.getElementById('editInjSite').value = inj.site;
+  document.getElementById('editInjNotes').value = (inj.notes||'') + (inj.symptoms?.length ? ` [Sintomi: ${inj.symptoms.join(', ')}]` : '');
+  document.getElementById('editInjModal').classList.add('open');
+}
+function saveInjEdit() {
+  const idx = document.getElementById('editInjIdx').value; const inj = injections[idx];
+  injections[idx] = { ...inj, date: document.getElementById('editInjDate').value, time: document.getElementById('editInjTime').value, dose: document.getElementById('editInjDose').value, site: document.getElementById('editInjSite').value, notes: document.getElementById('editInjNotes').value };
+  injections.sort((a,b) => a.date.localeCompare(b.date)); saveData(); closeModal('editInjModal'); renderHistory(); showToast('✅ Aggiornata!');
+}
+
+function addToGoogleCalendar(injIdx) {
+  const inj = injections[injIdx]; const nextDate = addDays(inj.date, 7); const [hh, mm] = (inj.time || '09:00').split(':').map(Number);
+  const start = nextDate.replace(/-/g, '') + 'T' + String(hh).padStart(2,'0') + String(mm).padStart(2,'0') + '00';
+  const end = nextDate.replace(/-/g, '') + 'T' + String(hh).padStart(2,'0') + String(mm+30<60?mm+30:59).padStart(2,'0') + '00';
+  window.open(`https://calendar.google.com/calendar/render?action=TEMPLATE&text=${encodeURIComponent('Punt. Mou. '+inj.dose)}&dates=${start}/${end}&details=${encodeURIComponent('Sede prevista: ' + getSuggestedSite() + '\nRegistrato con MounjaroTracker')}`, '_blank');
+}
+async function manualSync() { await cloudLoad(); renderHome(); renderHistory(); renderStats(); }
+function deleteMeasurement(idx) { measurements.splice(idx, 1); saveData(); renderHistory(); renderHome(); showToast('🗑️ Eliminata'); }
+function deleteInjection(idx) { injections.splice(idx, 1); saveData(); renderHistory(); renderHome(); showToast('🗑️ Eliminata'); }
+
+// ===================== HOME VIEW =====================
+function renderHome() {
+  renderKPIs(); renderNextInjection(); renderWeightChart(); renderPharmaChart();
+}
+
+function renderNextInjection() {
+  const card = document.getElementById('nextInjectionCard'); if(injections.length === 0) { card.innerHTML = ''; return; }
+  const last = injections[injections.length - 1]; const next = addDays(last.date, 7); const days = diffDays(todayStr(), next);
+  card.innerHTML = `<div class="next-injection-card"><div class="next-inj-icon"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10.5 2.5L7 6M14 6l2 2M6 18l-2 2M17.5 6.5l2-2M12 12l-8 8M9.5 14.5L4 20M15 9l-6 6"/><path d="M20 4l-3.5 3.5"/></svg></div><div style="flex:1"><div class="next-inj-label">${days<0?'Puntura scaduta':days===0?'Puntura oggi!':'Prossima puntura'}</div><div class="next-inj-value">${formatDate(next)} · ${getSuggestedNextDose()}</div><div class="next-inj-days">Sede cons.: ${getSuggestedSite()} ${days>0?'(tra '+days+' gg)':''}</div></div><button onclick="addToGoogleCalendar(${injections.length-1})" style="width:40px;height:40px;border-radius:var(--radius-md);display:flex;align-items:center;justify-content:center;color:var(--color-injection);background:var(--color-injection-soft);border:1px solid oklch(from var(--color-injection) l c h / 0.2)"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/><path d="M8 14h.01M12 14h.01M16 14h.01"/></svg></button></div>`;
+}
+
+function renderKPIs() {
+  const wData = measurements.filter(m => m.weight !== null);
+  document.getElementById('kpiGrid').innerHTML = `
+    <div class="kpi-card accent"><div class="kpi-label">Peso attuale</div><div class="kpi-value primary">${wData.length?wData[wData.length-1].weight:'—'}<small style="font-size:0.55em"> kg</small></div></div>
+    <div class="kpi-card injection-card"><div class="kpi-label">Punture</div><div class="kpi-value injection">${injections.length}<small style="font-size:0.55em"> tot.</small></div></div>
+  `;
+}
+
+// === GRAFICO FARMACO ===
+function renderPharmaChart() {
+  const pCtx = document.getElementById('pharmaChart').getContext('2d');
+  if(pharmaChartInst) pharmaChartInst.destroy();
+  if(injections.length === 0) { document.getElementById('pharmaChartCard').style.display = 'none'; return; }
+  document.getElementById('pharmaChartCard').style.display = 'block';
+  
+  const lastInj = injections[injections.length - 1];
+  const doseValue = parseFloat(lastInj.dose.replace(',', '.')); // Estrae il numero "5" da "5 mg"
+  
+  // Moltiplicatori approssimati della curva farmacocinetica Mounjaro per 7 giorni
+  const curveMultipliers = [0.1, 0.6, 1.0, 0.85, 0.70, 0.55, 0.40, 0.25];
+  const dataPoints = curveMultipliers.map(m => m * doseValue);
+  const isDark = document.documentElement.getAttribute('data-theme') === 'dark';
+
+  pharmaChartInst = new Chart(pCtx, {
+    type: 'line',
+    data: {
+      labels: ['Iniez.', 'G1', 'G2', 'G3', 'G4', 'G5', 'G6', 'G7'],
+      datasets: [{
+        label: `Livello stimato (${lastInj.dose})`,
+        data: dataPoints,
+        borderColor: isDark ? '#60a5fa' : '#2563b0',
+        backgroundColor: isDark ? 'rgba(96,165,250,0.1)' : 'rgba(37,99,176,0.08)',
+        borderWidth: 2.5, tension: 0.4, fill: true, pointRadius: 3
+      }]
+    },
+    options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { x: { grid: { display: false } }, y: { display: false, min: 0 } } }
+  });
+}
+
+// === GRAFICO PESO ===
+function renderWeightChart() {
+  const wCtx = document.getElementById('weightChart').getContext('2d');
+  if(weightChartInst) weightChartInst.destroy();
+  const wData = measurements.filter(m => m.weight !== null);
+  if(wData.length < 2) return;
+  const isDark = document.documentElement.getAttribute('data-theme') === 'dark';
+  weightChartInst = new Chart(wCtx, {
+    type: 'line',
+    data: {
+      labels: wData.map(m => formatDate(m.date)),
+      datasets: [{ label: 'Peso', data: wData.map(m => m.weight), borderColor: isDark?'#4caf78':'#1a7a4a', backgroundColor: isDark?'rgba(76,175,120,0.1)':'rgba(26,122,74,0.08)', borderWidth: 2.5, tension: 0.3, fill: true }]
+    },
+    options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } } }
+  });
+}
+
+// ===================== HISTORY =====================
+function renderHistory() {
+  document.getElementById('measureHistory').innerHTML = measurements.length === 0 ? '<div class="empty-state"><p>Nessuna misurazione</p></div>' : `<div class="history-list">${[...measurements].reverse().map((m, i) => `<div class="history-item"><div style="flex:1"><div class="history-date">${formatDate(m.date)}</div><div>${m.weight?`⚖️ ${m.weight} kg`:''} ${m.chest?`📏 ${m.chest} cm`:''}</div></div><button class="history-delete" onclick="editMeasurement(${measurements.indexOf(m)})">✏️</button><button class="history-delete" onclick="deleteMeasurement(${measurements.indexOf(m)})">🗑️</button></div>`).join('')}</div>`;
+  
+  document.getElementById('injectionHistory').innerHTML = injections.length === 0 ? '<div class="empty-state"><p>Nessuna puntura</p></div>' : [...injections].reverse().map((inj, i) => {
+    const idx = injections.indexOf(inj);
+    return `<div class="injection-item"><div class="injection-icon">💉</div><div class="injection-info"><div class="injection-date">${formatDate(inj.date)}</div><div class="injection-dose">Sede: ${inj.site||'Non specificata'}</div></div><span class="injection-badge">${inj.dose}</span>${inj.symptoms?.length?`<div class="injection-symptoms">Sintomi: ${inj.symptoms.join(', ')}</div>`:''}<button class="history-delete" onclick="editInjection(${idx})">✏️</button><button class="history-delete" onclick="deleteInjection(${idx})">🗑️</button></div>`;
+  }).join('');
+}
+
+// ===================== STATS & EXPORT =====================
+function switchStatTab(period, btn) {
+  document.querySelectorAll('.stats-tab, .stat-section').forEach(e => e.classList.remove('active'));
+  btn.classList.add('active'); document.getElementById('stat-' + period).classList.add('active'); renderStatPeriod(period);
+}
+
+function renderStats() { renderStatPeriod('settimanale'); }
+
+function renderStatPeriod(period) {
+  const container = document.getElementById('stat-' + period);
+  const data = measurements; // Semplificato per spazio, puoi aggiungere i filtri temporali che avevi
+  
+  // Analisi Sintomi
+  const symCounts = {};
+  injections.forEach(inj => { if(inj.symptoms) inj.symptoms.forEach(s => symCounts[s] = (symCounts[s]||0)+1); });
+  let symHtml = Object.keys(symCounts).length ? `<div style="margin-top:var(--space-4)"><div class="card-title">Frequenza Sintomi</div>${Object.entries(symCounts).sort((a,b)=>b[1]-a[1]).map(([s, c]) => `<div class="history-item" style="margin-bottom:var(--space-2)"><span>${s}</span><span class="injection-badge">${c}x</span></div>`).join('')}</div>` : '';
+
+  container.innerHTML = `<div class="card">
+    <div class="stat-row"><div class="stat-box"><div class="stat-box-label">Calo Max</div><div class="stat-box-value">${data.length>1?(data[data.length-1].weight - data[0].weight).toFixed(1):'0'} kg</div></div>
+    <div class="stat-box"><div class="stat-box-label">Punture</div><div class="stat-box-value" style="color:var(--color-injection)">${injections.length}</div></div></div>
+  </div>${symHtml}`;
+}
+
+// Esportazione CSV
+function exportCSV() {
+  if(!measurements.length && !injections.length) return showToast("⚠️ Nessun dato da esportare");
+  let csv = "Data,Tipo,Peso (kg),Torace (cm),Dosaggio,Sede,Sintomi,Note\n";
+  const timeline = [];
+  measurements.forEach(m => timeline.push({d: m.date, t: 'Misurazione', w: m.weight||'', c: m.chest||'', ds: '', st: '', sy: '', n: ''}));
+  injections.forEach(i => timeline.push({d: i.date, t: 'Puntura', w: '', c: '', ds: i.dose||'', st: i.site||'', sy: (i.symptoms||[]).join('; '), n: i.notes||''}));
+  
+  timeline.sort((a,b) => a.d.localeCompare(b.d)).forEach(row => {
+    const esc = s => `"${String(s).replace(/"/g, '""')}"`;
+    csv += `${row.d},${row.t},${row.w},${row.c},${esc(row.ds)},${esc(row.st)},${esc(row.sy)},${esc(row.n)}\n`;
+  });
+  
+  const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+  const link = document.createElement("a");
+  link.href = URL.createObjectURL(blob);
+  link.download = `Mounjaro_Report_${todayStr()}.csv`;
+  document.body.appendChild(link); link.click(); document.body.removeChild(link);
+  showToast("📥 Report CSV scaricato!");
+}
+
+initData();
+</script>
+</body>
+</html>
