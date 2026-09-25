@@ -172,9 +172,11 @@
 
     /* BOTTOM NAV */
     .bottom-nav {
-      position: fixed; bottom: 0; left: 0; right: 0; z-index: 100;
+      position: fixed; left: 0; right: 0; z-index: 100;
+      /* bottom = altezza barra strumenti browser (Chrome iOS) rilevata via VisualViewport, + safe-area home indicator */
+      bottom: calc(var(--vvb-offset, 0px) + env(safe-area-inset-bottom));
       background: var(--color-surface); border-top: 1px solid var(--color-divider);
-      height: var(--nav-height); display: flex; align-items: stretch; padding-bottom: env(safe-area-inset-bottom);
+      height: var(--nav-height); display: flex; align-items: stretch;
       box-shadow: 0 -1px 3px oklch(0.28 0.03 250 / 0.05), 0 -6px 20px oklch(0.28 0.03 250 / 0.07);
     }
     .nav-item { position: relative; flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 3px; color: var(--color-text-faint); font-size: 0.7rem; font-weight: 500; padding: var(--space-2) 0; transition: color var(--transition); }
@@ -196,6 +198,11 @@
     .kpi-card.accent::before { background: var(--color-primary); opacity: 1; }
     .kpi-card.injection-card { background: var(--color-injection-soft); border-color: oklch(from var(--color-injection) l c h / 0.2); }
     .kpi-card.injection-card::before { background: var(--color-injection); opacity: 1; }
+    .kpi-card.clickable { cursor: pointer; -webkit-tap-highlight-color: transparent; transition: transform 90ms ease, box-shadow var(--transition); }
+    .kpi-card.clickable:active { transform: scale(0.97); box-shadow: var(--shadow-md); }
+    .kpi-card-hint { position: absolute; top: var(--space-3); right: var(--space-3); color: var(--color-text-faint); opacity: 0.6; }
+    .kpi-card.accent .kpi-card-hint { color: var(--color-primary); }
+    .kpi-card.injection-card .kpi-card-hint { color: var(--color-injection); }
     .kpi-label { font-size: 0.68rem; color: var(--color-text-muted); font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 3px; line-height: 1.25; }
     .kpi-value { font-size: var(--text-lg); font-weight: 500; font-family: var(--font-mono); line-height: 1.1; letter-spacing: -0.02em; }
     .kpi-value.primary { color: var(--color-primary); }
@@ -422,11 +429,14 @@
             <svg class="card-title-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg> Andamento Peso
           </div>
           <div class="chart-zoom-row">
-            <span class="zoom-hint">🔍 Pizzica/scorri per zoomare</span>
+            <span class="zoom-hint">🔍 Pizzica/scorri per zoomare · trascina per vedere la stima futura</span>
             <button class="reset-zoom-btn" id="resetZoomBtn" onclick="resetWeightZoom()">Reset zoom</button>
           </div>
           <div class="chart-wrap-tall"><canvas id="weightChart"></canvas></div>
           <div class="dose-legend" id="doseLegend"></div>
+          <div class="dose-legend" id="projLegend" style="display:none">
+            <div class="dose-legend-item"><span class="dose-legend-dot" style="background:transparent;border:2px dashed var(--color-primary);border-radius:0;width:12px;height:0"></span>Stima andamento futuro (12 sett.)</div>
+          </div>
         </div>
 
         <!-- Curva Efficacia -->
@@ -851,6 +861,29 @@ async function testGASConnection() {
 function saveData() { saveLocal(); cloudSave(); }
 async function initData() { loadLocal(); renderHome(); updateSymDaysAfterInj(); const ok = await cloudLoad(); if(ok){ renderHome(); renderHistory(); updateSymDaysAfterInj(); } }
 
+// ===================== VIEWPORT FIX (barra nav iOS Chrome) =====================
+// Le versioni recenti di Chrome su iPhone mostrano una barra degli indirizzi
+// "flottante" in basso che sovrappone gli elementi fixed: bottom:0, rendendo
+// la nav in parte nascosta. La VisualViewport API ci dice quanto spazio in
+// basso è coperto dall'interfaccia del browser in un dato momento, e
+// spostiamo la nav di conseguenza.
+(function () {
+  const root = document.documentElement;
+  function updateVVBOffset() {
+    const vv = window.visualViewport;
+    if (!vv) { root.style.setProperty('--vvb-offset', '0px'); return; }
+    const offset = Math.max(0, window.innerHeight - vv.height - vv.offsetTop);
+    root.style.setProperty('--vvb-offset', offset + 'px');
+  }
+  if (window.visualViewport) {
+    window.visualViewport.addEventListener('resize', updateVVBOffset);
+    window.visualViewport.addEventListener('scroll', updateVVBOffset);
+  }
+  window.addEventListener('resize', updateVVBOffset);
+  window.addEventListener('orientationchange', () => setTimeout(updateVVBOffset, 150));
+  updateVVBOffset();
+})();
+
 // ===================== THEME =====================
 (function(){
   const t = document.querySelector('[data-theme-toggle]'); const r = document.documentElement; let d = matchMedia('(prefers-color-scheme:dark)').matches ? 'dark' : 'light'; r.setAttribute('data-theme', d);
@@ -905,6 +938,25 @@ function switchView(view, btn) {
     document.querySelectorAll('#symLogChips .chip').forEach(c => c.classList.remove('active'));
     updateSymDaysAfterInj();
   }
+}
+
+// Scorciatoie dai riquadri KPI in home: aprono la vista "Aggiungi" già
+// posizionata e con il focus sul campo giusto.
+function goToAddWeight() {
+  switchView('add', document.querySelectorAll('.nav-item')[1]);
+  setTimeout(() => {
+    const form = document.getElementById('measureForm');
+    if (form) form.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    const input = document.getElementById('inputWeight');
+    if (input) input.focus({ preventScroll: true });
+  }, 60);
+}
+function goToAddInjection() {
+  switchView('add', document.querySelectorAll('.nav-item')[1]);
+  setTimeout(() => {
+    const form = document.getElementById('injectionForm');
+    if (form) form.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  }, 60);
 }
 
 function showToast(msg) {
@@ -1335,14 +1387,16 @@ function renderKPIs() {
     ? (startWeight - currentWeight) : null;
 
   const pesoCard = `
-    <div class="kpi-card accent">
+    <div class="kpi-card accent clickable" onclick="goToAddWeight()" title="Tocca per aggiungere una nuova misurazione">
+      <span class="kpi-card-hint"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 5v14M5 12h14"/></svg></span>
       <div class="kpi-label">Peso attuale</div>
       <div class="kpi-value primary">${currentWeight !== null ? currentWeight : '—'}<small style="font-size:0.55em"> kg</small></div>
       ${totalLoss !== null ? `<div class="kpi-delta ${totalLoss >= 0 ? 'down' : 'up'}">${totalLoss >= 0 ? '▼' : '▲'} ${Math.abs(totalLoss).toFixed(1)} kg calo max</div>` : ''}
     </div>`;
 
   const puntureCard = `
-    <div class="kpi-card injection-card">
+    <div class="kpi-card injection-card clickable" onclick="goToAddInjection()" title="Tocca per registrare una nuova puntura">
+      <span class="kpi-card-hint"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 5v14M5 12h14"/></svg></span>
       <div class="kpi-label">Punture totali</div>
       <div class="kpi-value injection">${injections.length}<small style="font-size:0.55em"> tot.</small></div>
     </div>`;
@@ -1407,6 +1461,24 @@ function renderPharmaChart() {
       }
     }
   });
+}
+
+// === STIMA ANDAMENTO FUTURO (regressione lineare sul trend recente) ===
+const PROJECTION_DAYS = 84; // 12 settimane
+function computeWeightTrend(wData) {
+  // Usa al massimo le ultime 8 misurazioni (o tutte se meno) per riflettere
+  // l'andamento recente più del calo iniziale, spesso più rapido.
+  const recent = wData.slice(-8);
+  if (recent.length < 3) return null;
+  const xs = recent.map(m => new Date(m.date).getTime());
+  const ys = recent.map(m => m.weight);
+  const n = xs.length;
+  const meanX = xs.reduce((a, b) => a + b, 0) / n;
+  const meanY = ys.reduce((a, b) => a + b, 0) / n;
+  let num = 0, den = 0;
+  for (let i = 0; i < n; i++) { num += (xs[i] - meanX) * (ys[i] - meanY); den += (xs[i] - meanX) ** 2; }
+  if (den === 0) return null;
+  return { slope: num / den }; // kg al millisecondo
 }
 
 // === GRAFICO PESO CON PUNTURE + ZOOM ===
@@ -1542,6 +1614,39 @@ function renderWeightChart() {
     });
   }
 
+  // Dataset stima futura (linea tratteggiata), continua dall'ultimo peso reale
+  const trend = computeWeightTrend(wData);
+  let projDataset = [];
+  if (trend) {
+    const lastPoint = wData[wData.length - 1];
+    const lastX = new Date(lastPoint.date).getTime();
+    const lastY = lastPoint.weight;
+    const day = 86400000;
+    const weeks = Math.round(PROJECTION_DAYS / 7);
+    const projPoints = [{ x: lastX, y: lastY }];
+    for (let w = 1; w <= weeks; w++) {
+      const x = lastX + w * 7 * day;
+      const y = lastY + trend.slope * (x - lastX);
+      projPoints.push({ x, y: Math.max(y, 0) });
+    }
+    projDataset = [{
+      type: 'line',
+      label: 'Stima andamento',
+      data: projPoints,
+      borderColor: isDark ? 'rgba(95,174,144,0.65)' : 'rgba(56,118,95,0.55)',
+      backgroundColor: 'transparent',
+      borderDash: [6, 5],
+      borderWidth: 2,
+      tension: 0.15,
+      fill: false,
+      pointRadius: 0,
+      pointHoverRadius: 4,
+      pointBackgroundColor: isDark ? '#5fae90' : '#38765f',
+      order: 4,
+      yAxisID: 'y'
+    }];
+  }
+
   // Calcola range X per i limiti dello zoom
   const allTimestamps = [
     ...wData.map(m => new Date(m.date).getTime()),
@@ -1550,9 +1655,12 @@ function renderWeightChart() {
   const xMin = Math.min(...allTimestamps);
   const xMax = Math.max(...allTimestamps);
   const xPad = (xMax - xMin) * 0.05 || 86400000;
+  // Il limite massimo di pan/zoom si estende nel futuro per poter scorrere
+  // fino a fine periodo di stima; la vista iniziale (min/max) resta invariata.
+  const xFutureLimit = trend ? (xMax + PROJECTION_DAYS * 86400000) : xMax;
 
   weightChartInst = new Chart(wCtx, {
-    data: { datasets: [weightDataset, ...durationDatasets, ...symDataset, ...injDatasets] },
+    data: { datasets: [weightDataset, ...projDataset, ...durationDatasets, ...symDataset, ...injDatasets] },
     options: {
       responsive: true,
       maintainAspectRatio: false,
@@ -1605,6 +1713,7 @@ function renderWeightChart() {
             },
             label(item) {
               const raw = item.raw;
+              if (item.dataset.label === 'Stima andamento') return `📈 stima: ${item.parsed.y.toFixed(1)} kg`;
               if (raw.symptoms) {
                 const lines = [`📋 ${raw.symptoms.join(', ')}`];
                 const res = getDaysAfterLastInj(raw.dateStr);
@@ -1640,7 +1749,7 @@ function renderWeightChart() {
             }
           },
           limits: {
-            x: { min: xMin - xPad, max: xMax + xPad }
+            x: { min: xMin - xPad, max: xFutureLimit + xPad }
           }
         }
       },
@@ -1681,6 +1790,9 @@ function renderWeightChart() {
       }
     }
   });
+
+  const projLegendEl = document.getElementById('projLegend');
+  if (projLegendEl) projLegendEl.style.display = trend ? 'flex' : 'none';
 
   // Legenda dosaggi usati
   const usedDoses = [...new Set(injections.map(i => i.dose))].sort((a, b) => parseFloat(a) - parseFloat(b));
