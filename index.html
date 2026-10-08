@@ -721,8 +721,17 @@
 <script>
 // ===================== STATE =====================
 const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbzvmetmru2ZcGqFv1VHV9tPb-rDZ2wjmAVFiSs-ujGzEOI7q-Ut_E6jb2fdKNT3hTaIsw/exec';
-// Token segreto — deve essere IDENTICO a AUTH_TOKEN nello script GAS
-const AUTH_TOKEN = 'HFdNSj67pK4TE0ZnhMKredSfeCTw';
+// Token segreto — NON scriverlo qui (la repo è pubblica).
+// Viene chiesto una volta e salvato solo in questo browser; deve essere IDENTICO a AUTH_TOKEN nello script GAS.
+function getAuthToken() {
+  let t = '';
+  try { t = localStorage.getItem('mounjaro_token') || ''; } catch(e) {}
+  if(!t) {
+    t = (prompt('Inserisci il token di accesso (lo stesso di AUTH_TOKEN nello script Google):') || '').trim();
+    if(t) { try { localStorage.setItem('mounjaro_token', t); } catch(e) {} }
+  }
+  return t;
+}
 let measurements = []; let injections = []; let symptomLogs = [];
 let weightChartInst = null; let chestChartInst = null; let pharmaChartInst = null; let symptomChartInst = null;
 let syncStatus = 'idle';
@@ -780,10 +789,13 @@ function setSyncStatus(status, msg) {
 }
 async function gsFetch(params) {
   // token = autenticazione; _t = cache-buster
-  const p = Object.assign({ token: AUTH_TOKEN, _t: Date.now() }, params);
+  const p = Object.assign({ token: getAuthToken(), _t: Date.now() }, params);
   const resp = await fetch(SCRIPT_URL + '?' + new URLSearchParams(p).toString());
   if(!resp.ok) throw new Error('HTTP '+resp.status);
-  return await resp.json();
+  const json = await resp.json();
+  // Token errato: dimenticalo, così verrà richiesto di nuovo al prossimo tentativo
+  if(json && json.error === 'Non autorizzato') { try { localStorage.removeItem('mounjaro_token'); } catch(e) {} }
+  return json;
 }
 async function cloudLoad() {
   setSyncStatus('syncing');
