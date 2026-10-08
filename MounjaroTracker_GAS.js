@@ -9,9 +9,9 @@ const SHEET_MEAS = 'Misurazioni';
 const SHEET_INJ  = 'Punture';
 const SHEET_SYM  = 'Sintomi';
 
-// ⚠️ TOKEN SEGRETO — deve essere IDENTICO a quello in index.html
-// Se vuoi cambiarlo, cambialo in entrambi i file.
-const AUTH_TOKEN = 'HFdNSj67pK4TE0ZnhMKredSfeCTw';
+// ⚠️ TOKEN SEGRETO — sostituisci il valore SOLO nell'editor di Apps Script
+// (mai nel repository pubblico). L'app lo chiede al primo avvio sul dispositivo.
+const AUTH_TOKEN = 'CAMBIA_QUESTO_TOKEN';
 
 // ── GET: lettura e scrittura (URL-based) ──────────────
 function doGet(e) {
