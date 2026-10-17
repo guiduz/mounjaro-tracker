@@ -655,6 +655,17 @@
   </div>
 </div>
 
+<div class="modal-overlay" id="tokenModal">
+  <div class="modal">
+    <div class="modal-handle"></div>
+    <div class="modal-title">Token di accesso</div>
+    <p style="font-size:var(--text-sm);color:var(--color-text-muted);margin-bottom:var(--space-3)">Lo stesso valore di AUTH_TOKEN nello script Google. Viene salvato solo su questo dispositivo.</p>
+    <p id="tokenError" style="display:none;font-size:var(--text-sm);color:var(--color-error);margin-bottom:var(--space-3)">Il server ha rifiutato il token. Controlla maiuscole/minuscole e che coincida con AUTH_TOKEN nella versione distribuita dello script.</p>
+    <div class="form-group"><label class="form-label" for="tokenInput">Token</label><input type="text" id="tokenInput" class="form-input" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" onkeydown="if(event.key==='Enter')saveTokenFromModal()"></div>
+    <div style="display:flex;gap:var(--space-3);margin-top:var(--space-2)"><button class="btn btn-ghost" style="flex:1" onclick="closeModal('tokenModal')">Annulla</button><button class="btn btn-primary" style="flex:2" onclick="saveTokenFromModal()">Salva</button></div>
+  </div>
+</div>
+
 <div class="modal-overlay" id="editMeasModal">
   <div class="modal">
     <div class="modal-handle"></div>
@@ -722,15 +733,30 @@
 // ===================== STATE =====================
 const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbzvmetmru2ZcGqFv1VHV9tPb-rDZ2wjmAVFiSs-ujGzEOI7q-Ut_E6jb2fdKNT3hTaIsw/exec';
 // Token segreto — NON scriverlo qui (la repo è pubblica).
-// Viene chiesto una volta e salvato solo in questo browser; deve essere IDENTICO a AUTH_TOKEN nello script GAS.
+// Viene chiesto una volta (finestra "Token di accesso") e salvato solo in questo browser;
+// deve essere IDENTICO a AUTH_TOKEN nello script GAS.
+// Niente prompt(): su iPhone la tastiera mette la maiuscola iniziale e corregge il testo,
+// il token risultava diverso, il server lo rifiutava, veniva cancellato e richiesto a ogni salvataggio.
+const TOKEN_KEY = 'mounjaro_token';
 function getAuthToken() {
-  let t = '';
-  try { t = localStorage.getItem('mounjaro_token') || ''; } catch(e) {}
-  if(!t) {
-    t = (prompt('Inserisci il token di accesso (lo stesso di AUTH_TOKEN nello script Google):') || '').trim();
-    if(t) { try { localStorage.setItem('mounjaro_token', t); } catch(e) {} }
-  }
-  return t;
+  try { return localStorage.getItem(TOKEN_KEY) || ''; } catch(e) { return ''; }
+}
+function openTokenModal(rejected) {
+  const input = document.getElementById('tokenInput');
+  input.value = getAuthToken();
+  document.getElementById('tokenError').style.display = rejected ? 'block' : 'none';
+  document.getElementById('tokenModal').classList.add('open');
+  setTimeout(() => input.focus(), 50);
+}
+async function saveTokenFromModal() {
+  const t = document.getElementById('tokenInput').value.trim();
+  if(!t) { showToast('Inserisci il token'); return; }
+  try { localStorage.setItem(TOKEN_KEY, t); } catch(e) {}
+  if(getAuthToken() !== t) { showToast('⚠️ Il browser non permette di salvare il token (navigazione privata?)'); }
+  closeModal('tokenModal');
+  // Riprova subito: carica dal cloud solo se non ci sono dati locali, altrimenti invia quelli locali
+  const ok = (measurements.length || injections.length || symptomLogs.length) ? await cloudSave() : await cloudLoad();
+  if(ok) { showToast('✅ Token accettato'); renderHome(); renderHistory(); }
 }
 let measurements = []; let injections = []; let symptomLogs = [];
 let weightChartInst = null; let chestChartInst = null; let pharmaChartInst = null; let symptomChartInst = null;
@@ -789,12 +815,14 @@ function setSyncStatus(status, msg) {
 }
 async function gsFetch(params) {
   // token = autenticazione; _t = cache-buster
-  const p = Object.assign({ token: getAuthToken(), _t: Date.now() }, params);
+  const token = getAuthToken();
+  if(!token) { openTokenModal(false); throw new Error('Token mancante'); }
+  const p = Object.assign({ token, _t: Date.now() }, params);
   const resp = await fetch(SCRIPT_URL + '?' + new URLSearchParams(p).toString());
   if(!resp.ok) throw new Error('HTTP '+resp.status);
   const json = await resp.json();
-  // Token errato: dimenticalo, così verrà richiesto di nuovo al prossimo tentativo
-  if(json && json.error === 'Non autorizzato') { try { localStorage.removeItem('mounjaro_token'); } catch(e) {} }
+  // Token rifiutato dal server: mostra la finestra con l'errore (il token resta modificabile)
+  if(json && json.error === 'Non autorizzato') openTokenModal(true);
   return json;
 }
 async function cloudLoad() {
