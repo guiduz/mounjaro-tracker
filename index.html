@@ -258,6 +258,26 @@
     .reset-zoom-btn { font-size: var(--text-xs); padding: 3px 10px; border-radius: var(--radius-full); background: var(--color-surface-2); color: var(--color-primary); border: 1px solid var(--color-border); cursor: pointer; font-weight: 600; display: none; }
 
     /* HISTORY */
+    .proj-summary { display: flex; flex-wrap: wrap; gap: 6px; margin-top: var(--space-2); }
+    .proj-chip { font-size: var(--text-xs); padding: 4px var(--space-2); border-radius: var(--radius-full); border: 1px dashed oklch(from var(--color-primary) l c h / 0.5); color: var(--color-text); white-space: nowrap; }
+    .proj-chip strong { font-weight: 700; }
+    .pharma-today { margin-top: var(--space-3); font-size: var(--text-sm); color: var(--color-text); display: none; }
+    .pharma-today.show { display: block; }
+    .history-cols { display: grid; grid-template-columns: 1fr 1fr; gap: var(--space-3); align-items: start; }
+    .history-cols > .card { min-width: 0; padding: var(--space-3); }
+    .history-cols .history-list { gap: var(--space-2); }
+    .history-cols .history-item, .history-cols .injection-item { display: grid; grid-template-columns: minmax(0, 1fr) auto; align-items: center; gap: 2px 8px; padding: var(--space-2) var(--space-2) var(--space-2) var(--space-3); }
+    .history-cols .history-item { margin-bottom: 0; }
+    .history-cols .history-item > .hist-main { grid-column: 1 / -1; display: contents; }
+    .history-cols .history-date, .history-cols .injection-date { font-size: var(--text-xs); font-weight: 600; color: var(--color-text-muted); grid-column: 1; grid-row: 1; }
+    .history-cols .hist-vals { grid-column: 1; grid-row: 2; display: flex; flex-direction: column; font-size: var(--text-sm); line-height: 1.35; white-space: nowrap; }
+    .history-cols .injection-icon { display: none; }
+    .history-cols .injection-info { display: contents; }
+    .history-cols .injection-dose { grid-column: 1; grid-row: 2; font-size: var(--text-xs); margin-top: 0; min-width: 0; overflow-wrap: anywhere; }
+    .history-cols .injection-badge { grid-column: 2; grid-row: 1; justify-self: end; white-space: nowrap; }
+    .history-cols .hist-actions { grid-column: 2; grid-row: 2; display: flex; justify-self: end; }
+    .history-cols .history-delete { width: 26px; height: 26px; font-size: 13px; }
+    .history-cols .injection-symptoms { grid-column: 1 / -1; grid-row: 3; }
     .history-list { display: flex; flex-direction: column; gap: var(--space-2); }
     .history-item { display: flex; align-items: center; justify-content: space-between; padding: var(--space-3) var(--space-4); background: var(--color-surface-2); border-radius: var(--radius-lg); border: 1px solid oklch(from var(--color-border) l c h / 0.4); }
     .history-date { font-size: var(--text-xs); color: var(--color-text-faint); font-weight: 500; }
@@ -435,8 +455,9 @@
           <div class="chart-wrap-tall"><canvas id="weightChart"></canvas></div>
           <div class="dose-legend" id="doseLegend"></div>
           <div class="dose-legend" id="projLegend" style="display:none">
-            <div class="dose-legend-item"><span class="dose-legend-dot" style="background:transparent;border:2px dashed var(--color-primary);border-radius:0;width:12px;height:0"></span>Stima andamento futuro (12 sett.)</div>
+            <div class="dose-legend-item"><span class="dose-legend-dot" style="background:transparent;border:2px dashed var(--color-primary);border-radius:0;width:12px;height:0"></span>Stima andamento futuro</div>
           </div>
+          <div class="proj-summary" id="projSummary"></div>
         </div>
 
         <!-- Curva Efficacia -->
@@ -449,6 +470,7 @@
           <div class="chart-wrap">
             <canvas id="pharmaChart"></canvas>
           </div>
+          <div class="pharma-today" id="pharmaToday"></div>
         </div>
       </div>
 
@@ -580,14 +602,16 @@
   </div>
 
   <div class="view" id="view-history">
+   <div class="history-cols">
     <div class="card">
       <div class="card-title">Misurazioni</div>
       <div id="measureHistory"></div>
     </div>
     <div class="card">
-      <div class="card-title" style="color:var(--color-injection)">Punture Mounjaro</div>
+      <div class="card-title" style="color:var(--color-injection)">Punture</div>
       <div id="injectionHistory"></div>
     </div>
+   </div>
   </div>
 
   <div class="view" id="view-stats">
@@ -759,7 +783,7 @@ async function saveTokenFromModal() {
   if(ok) { showToast('✅ Token accettato'); renderHome(); renderHistory(); }
 }
 let measurements = []; let injections = []; let symptomLogs = [];
-let weightChartInst = null; let chestChartInst = null; let pharmaChartInst = null; let symptomChartInst = null;
+let weightAdaptY = null; let weightYBase = null; let weightChartInst = null; let chestChartInst = null; let pharmaChartInst = null; let symptomChartInst = null;
 let syncStatus = 'idle';
 const ROTATION_SITES = [
   'Add. Sup. Sx', 'Add. Sup. Centro', 'Add. Sup. Dx',
@@ -1466,8 +1490,55 @@ function renderPharmaChart() {
     return i === 0 ? `${dayLabel} 💉` : dayLabel;
   });
 
+  // Giorno di oggi rispetto all'ultima puntura (0 = giorno della puntura)
+  const now = new Date();
+  const todayMid = new Date(now.getFullYear(), now.getMonth(), now.getDate()).getTime();
+  const injMid = new Date(lastInj.date + 'T00:00:00').getTime();
+  const daysSince = Math.round((todayMid - injMid) / 86400000);
+  const todayIdx = daysSince >= 0 && daysSince < dataPoints.length ? daysSince : -1;
+  const peak = Math.max(...dataPoints);
+  const accent = isDark ? '#f0b35a' : '#c26a0a';
+  const pointR = dataPoints.map((_, i) => i === todayIdx ? 7 : 2.5);
+  const pointBg = dataPoints.map((_, i) => i === todayIdx ? accent : (isDark ? '#6aa3dd' : '#3b6ea5'));
+
+  const todayEl = document.getElementById('pharmaToday');
+  if (todayEl) {
+    if (todayIdx >= 0) {
+      const lvl = dataPoints[todayIdx];
+      todayEl.innerHTML = `📍 <strong>Oggi</strong> (${todayIdx === 0 ? 'giorno della puntura' : todayIdx + (todayIdx === 1 ? ' giorno' : ' giorni') + ' dopo la puntura'}): efficacia stimata <strong>${Math.round(lvl / peak * 100)}%</strong> del picco · ~${lvl.toFixed(1)} mg`;
+      todayEl.classList.add('show');
+    } else if (daysSince >= dataPoints.length) {
+      todayEl.innerHTML = `📍 Sono passati ${daysSince} giorni dall'ultima puntura: oltre la curva dei 7 giorni.`;
+      todayEl.classList.add('show');
+    } else {
+      todayEl.classList.remove('show');
+    }
+  }
+
+  // Linea verticale e etichetta "Oggi" sul giorno corrente
+  const todayPlugin = {
+    id: 'pharmaToday',
+    afterDatasetsDraw(chart) {
+      if (todayIdx < 0) return;
+      const pt = chart.getDatasetMeta(0).data[todayIdx];
+      if (!pt) return;
+      const { ctx, chartArea: a } = chart;
+      ctx.save();
+      ctx.strokeStyle = accent; ctx.lineWidth = 1.5; ctx.setLineDash([4, 4]);
+      ctx.beginPath(); ctx.moveTo(pt.x, a.top - 6); ctx.lineTo(pt.x, a.bottom); ctx.stroke();
+      ctx.setLineDash([]);
+      ctx.font = "700 11px 'DM Sans', sans-serif"; ctx.textBaseline = 'middle';
+      const text = 'Oggi'; const w = ctx.measureText(text).width + 12;
+      const bx = Math.min(Math.max(pt.x - w / 2, a.left), a.right - w);
+      ctx.fillStyle = accent; ctx.beginPath(); ctx.roundRect(bx, a.top - 24, w, 18, 6); ctx.fill();
+      ctx.fillStyle = isDark ? '#1b2631' : '#ffffff'; ctx.fillText(text, bx + 6, a.top - 14.5);
+      ctx.restore();
+    }
+  };
+
   pharmaChartInst = new Chart(pCtx, {
     type: 'line',
+    plugins: [todayPlugin],
     data: {
       labels: chartLabels,
       datasets: [{
@@ -1475,11 +1546,12 @@ function renderPharmaChart() {
         data: dataPoints,
         borderColor: isDark ? '#6aa3dd' : '#3b6ea5',
         backgroundColor: isDark ? 'rgba(106,163,221,0.10)' : 'rgba(59,110,165,0.07)',
-        borderWidth: 2.25, tension: 0.4, fill: true, pointRadius: 2.5, pointBackgroundColor: isDark ? '#6aa3dd' : '#3b6ea5'
+        borderWidth: 2.25, tension: 0.4, fill: true, pointRadius: pointR, pointHoverRadius: 6, pointBackgroundColor: pointBg, pointBorderColor: pointBg
       }]
     },
     options: {
       responsive: true, maintainAspectRatio: false,
+      layout: { padding: { top: 24 } },
       plugins: {
         legend: { display: false },
         tooltip: {
@@ -1525,6 +1597,7 @@ function computeWeightTrend(wData) {
 function resetWeightZoom() {
   if (weightChartInst) {
     weightChartInst.resetZoom();
+    if (weightYBase !== null) { weightChartInst.options.scales.y.min = weightYBase; weightChartInst.update('none'); }
     const btn = document.getElementById('resetZoomBtn');
     if (btn) btn.style.display = 'none';
   }
@@ -1537,6 +1610,7 @@ function renderWeightChart() {
   const wData = measurements.filter(m => m.weight !== null);
   if(wData.length < 2) {
     document.getElementById('doseLegend').innerHTML = '';
+    const ps = document.getElementById('projSummary'); if (ps) ps.innerHTML = '';
     const btn = document.getElementById('resetZoomBtn');
     if (btn) btn.style.display = 'none';
     return;
@@ -1657,17 +1731,25 @@ function renderWeightChart() {
   // Dataset stima futura (linea tratteggiata), continua dall'ultimo peso reale
   const trend = computeWeightTrend(wData);
   let projDataset = [];
+  let projEndX = null;
+  let projMarkers = [];
   if (trend) {
     const lastPoint = wData[wData.length - 1];
     const lastX = new Date(lastPoint.date).getTime();
     const lastY = lastPoint.weight;
     const day = 86400000;
-    const weeks = Math.round(PROJECTION_DAYS / 7);
+    const projAt = x => Math.max(lastY + trend.slope * (x - lastX), 0);
+    // Traguardi misurati da oggi (la stima resta ancorata all'ultimo peso reale)
+    const todayX = Math.max(new Date(todayStr()).getTime(), lastX);
+    const nowY = projAt(todayX);
+    projMarkers = [{ days: 30, name: 'tra 1 mese' }, { days: 60, name: 'tra 2 mesi' }, { days: 90, name: 'tra 3 mesi' }]
+      .map(t => { const x = todayX + t.days * day; return { x, y: projAt(x), name: t.name, delta: projAt(x) - nowY, dateStr: new Date(x).toISOString().slice(0, 10) }; });
+    projEndX = Math.max(lastX + PROJECTION_DAYS * day, todayX + 90 * day);
+    const weeks = Math.ceil((projEndX - lastX) / (7 * day));
     const projPoints = [{ x: lastX, y: lastY }];
     for (let w = 1; w <= weeks; w++) {
       const x = lastX + w * 7 * day;
-      const y = lastY + trend.slope * (x - lastX);
-      projPoints.push({ x, y: Math.max(y, 0) });
+      projPoints.push({ x, y: projAt(x) });
     }
     projDataset = [{
       type: 'line',
@@ -1684,6 +1766,18 @@ function renderWeightChart() {
       pointBackgroundColor: isDark ? '#5fae90' : '#38765f',
       order: 4,
       yAxisID: 'y'
+    }, {
+      type: 'line',
+      label: 'Stima traguardo',
+      data: projMarkers.map(m => ({ x: m.x, y: m.y, name: m.name, delta: m.delta, dateStr: m.dateStr })),
+      showLine: false,
+      backgroundColor: isDark ? '#1b2631' : '#ffffff',
+      borderColor: isDark ? '#5fae90' : '#38765f',
+      borderWidth: 2.5,
+      pointRadius: 5.5,
+      pointHoverRadius: 8,
+      order: 3,
+      yAxisID: 'y'
     }];
   }
 
@@ -1697,9 +1791,40 @@ function renderWeightChart() {
   const xPad = (xMax - xMin) * 0.05 || 86400000;
   // Il limite massimo di pan/zoom si estende nel futuro per poter scorrere
   // fino a fine periodo di stima; la vista iniziale (min/max) resta invariata.
-  const xFutureLimit = trend ? (xMax + PROJECTION_DAYS * 86400000) : xMax;
+  const xFutureLimit = projEndX ? Math.max(projEndX, xMax) : xMax;
+
+  // Etichetta con il peso stimato accanto ai punti-traguardo
+  const projLabelPlugin = {
+    id: 'projLabels',
+    afterDatasetsDraw(chart) {
+      const di = chart.data.datasets.findIndex(d => d.label === 'Stima traguardo');
+      if (di < 0) return;
+      const meta = chart.getDatasetMeta(di);
+      if (meta.hidden) return;
+      const { ctx, chartArea: a } = chart;
+      ctx.save();
+      ctx.font = "600 11px 'DM Sans', sans-serif";
+      ctx.textBaseline = 'middle';
+      meta.data.forEach((pt, i) => {
+        if (pt.x < a.left - 4 || pt.x > a.right + 4) return;
+        const raw = chart.data.datasets[di].data[i];
+        const text = `${raw.y.toFixed(1)} kg`;
+        const w = ctx.measureText(text).width + 12;
+        const bx = Math.min(Math.max(pt.x - w / 2, a.left), a.right - w);
+        const by = pt.y - 26 < a.top ? pt.y + 12 : pt.y - 26;
+        ctx.fillStyle = isDark ? 'rgba(21,29,38,0.92)' : 'rgba(255,255,255,0.94)';
+        ctx.strokeStyle = isDark ? '#5fae90' : '#38765f';
+        ctx.lineWidth = 1;
+        ctx.beginPath(); ctx.roundRect(bx, by, w, 18, 6); ctx.fill(); ctx.stroke();
+        ctx.fillStyle = isDark ? '#d4dee7' : '#1b2836';
+        ctx.fillText(text, bx + 6, by + 9.5);
+      });
+      ctx.restore();
+    }
+  };
 
   weightChartInst = new Chart(wCtx, {
+    plugins: [projLabelPlugin],
     data: { datasets: [weightDataset, ...projDataset, ...durationDatasets, ...symDataset, ...injDatasets] },
     options: {
       responsive: true,
@@ -1715,6 +1840,7 @@ function renderWeightChart() {
         const day = 86400000;
         chart.options.scales.x.min = ts - 3 * day;
         chart.options.scales.x.max = ts + 10 * day;
+        if (weightAdaptY) weightAdaptY(chart);
         chart.update('none');
         const btn = document.getElementById('resetZoomBtn');
         if (btn) btn.style.display = 'inline-flex';
@@ -1754,6 +1880,7 @@ function renderWeightChart() {
             label(item) {
               const raw = item.raw;
               if (item.dataset.label === 'Stima andamento') return `📈 stima: ${item.parsed.y.toFixed(1)} kg`;
+              if (item.dataset.label === 'Stima traguardo') return `📈 ${raw.name}: ${item.parsed.y.toFixed(1)} kg (${raw.delta <= 0 ? '−' : '+'}${Math.abs(raw.delta).toFixed(1)} kg da oggi)`;
               if (raw.symptoms) {
                 const lines = [`📋 ${raw.symptoms.join(', ')}`];
                 const res = getDaysAfterLastInj(raw.dateStr);
@@ -1776,6 +1903,7 @@ function renderWeightChart() {
             pinch: { enabled: true },
             mode: 'x',
             onZoom({ chart }) {
+              if (weightAdaptY) weightAdaptY(chart);
               const btn = document.getElementById('resetZoomBtn');
               if (btn) btn.style.display = 'inline-flex';
             }
@@ -1784,6 +1912,7 @@ function renderWeightChart() {
             enabled: true,
             mode: 'x',
             onPan({ chart }) {
+              if (weightAdaptY) weightAdaptY(chart);
               const btn = document.getElementById('resetZoomBtn');
               if (btn) btn.style.display = 'inline-flex';
             }
@@ -1831,8 +1960,36 @@ function renderWeightChart() {
     }
   });
 
+  // Asse Y adattivo: scorrendo verso la stima futura la scala segue i valori visibili,
+  // altrimenti la linea tratteggiata e i punti-traguardo uscirebbero dal grafico.
+  const yBaseMin = injY - 0.3;
+  weightYBase = yBaseMin;
+  weightAdaptY = function (chart) {
+    const xs = chart.scales.x, lo = xs.min, hi = xs.max;
+    const ys = [];
+    wData.forEach(m => { const x = new Date(m.date).getTime(); if (x >= lo && x <= hi) ys.push(m.weight); });
+    if (trend) {
+      const lp = wData[wData.length - 1], lx = new Date(lp.date).getTime();
+      [lo, hi].forEach(x => { if (x > lx) ys.push(Math.max(lp.weight + trend.slope * (x - lx), 0)); });
+      projMarkers.forEach(m => { if (m.x >= lo && m.x <= hi) ys.push(m.y); });
+    }
+    const injVisible = injections.some(i => { const x = new Date(i.date).getTime(); return x >= lo && x <= hi; });
+    let ymin = yBaseMin;
+    if (ys.length) {
+      ymin = Math.min(...ys) - Math.max(range * 0.12, 0.8);
+      // con punture visibili serve anche la fascia dedicata sotto la linea del peso
+      if (injVisible) ymin = Math.min(ymin, yBaseMin);
+    }
+    chart.options.scales.y.min = ymin;
+  };
   const projLegendEl = document.getElementById('projLegend');
   if (projLegendEl) projLegendEl.style.display = trend ? 'flex' : 'none';
+  const projSummaryEl = document.getElementById('projSummary');
+  if (projSummaryEl) {
+    projSummaryEl.innerHTML = projMarkers.map(m =>
+      `<span class="proj-chip">${m.name}: <strong>${m.y.toFixed(1)} kg</strong> <span style="color:var(--color-text-muted)">(${m.delta <= 0 ? '−' : '+'}${Math.abs(m.delta).toFixed(1)})</span></span>`
+    ).join('');
+  }
 
   // Legenda dosaggi usati
   const usedDoses = [...new Set(injections.map(i => i.dose))].sort((a, b) => parseFloat(a) - parseFloat(b));
@@ -1851,11 +2008,11 @@ function renderWeightChart() {
 
 // ===================== HISTORY =====================
 function renderHistory() {
-  document.getElementById('measureHistory').innerHTML = measurements.length === 0 ? '<div class="empty-state"><p>Nessuna misurazione</p></div>' : `<div class="history-list">${[...measurements].reverse().map((m, i) => `<div class="history-item"><div style="flex:1"><div class="history-date">${formatDate(m.date)}</div><div>${m.weight?`⚖️ ${m.weight} kg`:''} ${m.chest?`📏 ${m.chest} cm`:''}</div></div><button class="history-delete" onclick="editMeasurement(${measurements.indexOf(m)})">✏️</button><button class="history-delete" onclick="deleteMeasurement(${measurements.indexOf(m)})">🗑️</button></div>`).join('')}</div>`;
+  document.getElementById('measureHistory').innerHTML = measurements.length === 0 ? '<div class="empty-state"><p>Nessuna misurazione</p></div>' : `<div class="history-list">${[...measurements].reverse().map((m, i) => `<div class="history-item"><div class="hist-main" style="flex:1"><div class="history-date">${formatDate(m.date)}</div><div class="hist-vals">${m.weight?`<span>⚖️ ${m.weight} kg</span>`:''}${m.chest?`<span>📏 ${m.chest} cm</span>`:''}</div></div><div class="hist-actions"><button class="history-delete" onclick="editMeasurement(${measurements.indexOf(m)})">✏️</button><button class="history-delete" onclick="deleteMeasurement(${measurements.indexOf(m)})">🗑️</button></div></div>`).join('')}</div>`;
 
   document.getElementById('injectionHistory').innerHTML = injections.length === 0 ? '<div class="empty-state"><p>Nessuna puntura</p></div>' : [...injections].reverse().map((inj, i) => {
     const idx = injections.indexOf(inj);
-    return `<div class="injection-item"><div class="injection-icon">💉</div><div class="injection-info"><div class="injection-date">${formatDate(inj.date)}</div><div class="injection-dose">Sede: ${inj.site||'Non specificata'}</div></div><span class="injection-badge">${inj.dose}</span>${inj.symptoms?.length?`<div class="injection-symptoms">Sintomi: ${inj.symptoms.join(', ')}</div>`:''}<button class="history-delete" onclick="editInjection(${idx})">✏️</button><button class="history-delete" onclick="deleteInjection(${idx})">🗑️</button></div>`;
+    return `<div class="injection-item"><div class="injection-icon">💉</div><div class="injection-info"><div class="injection-date">${formatDate(inj.date)}</div><div class="injection-dose">${inj.site||'Sede non specificata'}</div></div><span class="injection-badge">${inj.dose}</span><div class="hist-actions"><button class="history-delete" onclick="editInjection(${idx})">✏️</button><button class="history-delete" onclick="deleteInjection(${idx})">🗑️</button></div>${inj.symptoms?.length?`<div class="injection-symptoms">Sintomi: ${inj.symptoms.join(', ')}</div>`:''}</div>`;
   }).join('');
 }
 
